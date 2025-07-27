@@ -1,0 +1,32 @@
+{
+    "folders": [
+        {
+            "name": "I - RIZE /I-RIZE.xcodeproj",
+            "path": "../.."
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "README.md": true,
+            "I-RIZE": true,
+            ".vscode/xcode/fifo": true,
+            ".vscode/xcode/bundles": true
+        },
+        "search.exclude": {
+            "README.md": true,
+            "I-RIZE": true,
+            ".vscode/xcode/fifo": true,
+            ".vscode/xcode/bundles": true
+        },
+        "swift.autoGenerateLaunchConfigurations": false,
+        "swift.disableAutoResolve": true,
+        "swift.sourcekit-lsp.disable": true,
+        "swift.disableSwiftPackageManagerIntegration": true,
+        "swift.searchSubfoldersForPackages": false
+    },
+    "extensions": {
+        "unwantedRecommendations": [
+            "sswg.swift-lang"
+        ]
+    }
+}
