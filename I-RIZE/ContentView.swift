@@ -5,7 +5,6 @@ import AVFoundation
 struct ContentView: View {
     @State private var currentTime = Date()
     @State private var showingAlarmSheet = false
-    @State private var showingSettings = false
     @State private var alarms: [Alarm] = []
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -19,48 +18,14 @@ struct ContentView: View {
             VStack(spacing: 30) {
                 // Status bar area
                 HStack {
-                    Text(timeString)
-                        .font(.system(size: 16, weight: .medium, design: .monospaced))
-                        .foregroundColor(.neonGreen)
-                    
                     Spacer()
-                    
-                    HStack(spacing: 4) {
-                        // Signal bars
-                        HStack(spacing: 2) {
-                            ForEach(0..<3, id: \.self) { index in
-                                Rectangle()
-                                    .fill(Color.neonGreen)
-                                    .frame(width: 3, height: 8 + CGFloat(index * 2))
-                            }
-                        }
-                        
-                        Text("5G")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.neonGreen)
-                        
-                        // Battery
-                        HStack(spacing: 2) {
-                            Rectangle()
-                                .fill(Color.neonGreen)
-                                .frame(width: 20, height: 10)
-                                .overlay(
-                                    Rectangle()
-                                        .fill(Color.black)
-                                        .frame(width: 16, height: 6)
-                                )
-                            Rectangle()
-                                .fill(Color.neonGreen)
-                                .frame(width: 2, height: 4)
-                        }
-                        
-                        Text("777%")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.neonGreen)
-                    }
+                    Text("APEX APPLICATIONS LLC")
+                        .font(.system(size: 24, weight: .medium, design: .monospaced))
+                        .foregroundColor(.neonGreen)
+                    Spacer()
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 10)
+                .padding(.top, 100)
                 
                 Spacer()
                 
@@ -168,26 +133,6 @@ struct ContentView: View {
                                 .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
                         )
                     }
-                    
-                    // Settings button
-                    Button(action: {
-                        showingSettings = true
-                    }) {
-                        HStack {
-                            Image(systemName: "gearshape")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Settings")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.neonGreen)
-                                .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                        )
-                    }
                 }
                 .padding(.horizontal, 40)
                 
@@ -206,9 +151,6 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingAlarmSheet) {
             AlarmSheetView(alarms: $alarms)
-        }
-        .sheet(isPresented: $showingSettings) {
-            SetAlarmView(alarms: $alarms)
         }
         .onAppear {
             requestNotificationPermission()
@@ -413,16 +355,72 @@ class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
         }
     }
     
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // Handle notification when app is in background and user taps on it
+        let userInfo = response.notification.request.content.userInfo
+        if let message = userInfo["message"] as? String,
+           let voiceID = userInfo["voiceID"] as? String {
+            
+            print("🔔 Background alarm triggered! Playing voice for message: \(message)")
+            print("🎵 Using voice ID: \(voiceID)")
+            
+            // Generate and play the voice
+            elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
+                if let audioData = audioData {
+                    print("✅ ElevenLabs audio generated successfully")
+                    DispatchQueue.main.async {
+                        self.playAlarmVoice(audioData)
+                    }
+                } else {
+                    print("❌ Failed to generate ElevenLabs audio")
+                }
+            }
+        }
+        
+        completionHandler()
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive notification: UNNotification) {
+        // Handle notification when app is in background (iOS 10+)
+        let userInfo = notification.request.content.userInfo
+        if let message = userInfo["message"] as? String,
+           let voiceID = userInfo["voiceID"] as? String {
+            
+            print("🔔 Background notification received! Playing voice for message: \(message)")
+            print("🎵 Using voice ID: \(voiceID)")
+            
+            // Generate and play the voice
+            elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
+                if let audioData = audioData {
+                    print("✅ ElevenLabs audio generated successfully")
+                    DispatchQueue.main.async {
+                        self.playAlarmVoice(audioData)
+                    }
+                } else {
+                    print("❌ Failed to generate ElevenLabs audio")
+                }
+            }
+        }
+    }
+    
     private func playAlarmVoice(_ audioData: Data) {
         do {
             print("🎵 Playing alarm voice...")
             
             #if os(iOS)
-            // Set up audio session for alarm playback
+            // Set up audio session for alarm playback with simpler, more compatible settings
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
-            try audioSession.setActive(true, options: [])
-            print("🔊 Audio session activated for alarm")
+            try audioSession.setActive(true)
+            print("🔊 Audio session activated for alarm with speaker output")
+            
+            // Check device volume
+            let currentVolume = audioSession.outputVolume
+            print("📱 Device volume: \(currentVolume)")
+            
+            if currentVolume < 0.1 {
+                print("⚠️ WARNING: Device volume is very low! Please turn up your device volume.")
+            }
             #endif
             
             let audioPlayer = try AVAudioPlayer(data: audioData)
@@ -431,20 +429,59 @@ class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
             
             let success = audioPlayer.play()
             print("🎵 Alarm voice player started: \(success)")
+            print("🎵 Audio duration: \(audioPlayer.duration) seconds")
             
             if success {
                 print("✅ Alarm voice is now playing")
                 
-                // Keep the audio player alive
+                // Keep the audio player alive and check if it's actually playing
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    if audioPlayer.isPlaying {
+                        print("✅ Audio is still playing after 1 second")
+                    } else {
+                        print("❌ Audio stopped playing unexpectedly")
+                    }
+                }
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + audioPlayer.duration + 1) {
                     print("🎵 Alarm voice playback finished")
                 }
             } else {
                 print("❌ Alarm voice player failed to start")
+                
+                // Try alternative method
+                print("🔄 Trying alternative playback method...")
+                try? self.playAlarmVoiceAlternative(audioData)
             }
             
         } catch {
             print("❌ Error playing alarm voice: \(error)")
+            print("Error details: \(error.localizedDescription)")
+        }
+    }
+    
+    private func playAlarmVoiceAlternative(_ audioData: Data) throws {
+        print("🎵 Trying alternative audio playback method...")
+        
+        #if os(iOS)
+        // Force audio session to speaker output with simplified settings
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
+        try audioSession.setActive(true)
+        print("🔊 Set audio to speaker output (alternative method)")
+        #endif
+        
+        let audioPlayer = try AVAudioPlayer(data: audioData)
+        audioPlayer.volume = 1.0
+        audioPlayer.prepareToPlay()
+        
+        let success = audioPlayer.play()
+        print("🎵 Alternative audio player started: \(success)")
+        
+        if success {
+            print("✅ Alternative audio is now playing")
+        } else {
+            print("❌ Alternative audio player also failed")
         }
     }
 }
@@ -494,6 +531,11 @@ struct AlarmSheetView: View {
     @Binding var alarms: [Alarm]
     @Environment(\.dismiss) var dismiss
     @State private var selectedTime = Date()
+    @State private var customAlarmMessages: [String] = ["", "", "", "", ""]
+    @State private var customVoiceNames: [String] = ["Simeon", "Rachel", "Domi", "Bella", "Josh"]
+    @State private var customVoiceIDs: [String] = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld", "tQ4MEZFJOzsahSEEZtHK", "dPah2VEoifKnZT37774q"]
+    @State private var selectedVoiceForMessage = 0
+    @State private var showingConfiguration = false
     
     var body: some View {
         NavigationView {
@@ -551,7 +593,8 @@ struct AlarmSheetView: View {
                         ForEach(0..<3, id: \.self) { index in
                             Button(action: {
                                 // Set the alarm directly when button is pressed
-                                let newAlarm = Alarm(time: selectedTime, isEnabled: true, label: "Alarm \(index + 1)", repeatDays: [])
+                                let alarmMessage = customAlarmMessages[index].isEmpty ? "Alarm \(index + 1)" : customAlarmMessages[index]
+                                let newAlarm = Alarm(time: selectedTime, isEnabled: true, label: alarmMessage, repeatDays: [])
                                 alarms.append(newAlarm)
                                 scheduleNotification(for: newAlarm)
                                 dismiss()
@@ -583,8 +626,25 @@ struct AlarmSheetView: View {
                     
                     Spacer()
                     
-                    // Cancel Button
+                    // Configure and Cancel Buttons
                     VStack(spacing: 15) {
+                        Button(action: {
+                            showingConfiguration = true
+                        }) {
+                            Text("Configure Voice & Message")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.neonGreen)
+                                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+                                )
+                        }
+                        .padding(.horizontal, 20)
+                        
                         Button(action: {
                             dismiss()
                         }) {
@@ -625,6 +685,9 @@ struct AlarmSheetView: View {
                 }
                 #endif
             }
+            .sheet(isPresented: $showingConfiguration) {
+                SetAlarmView(alarms: $alarms)
+            }
         }
     }
     
@@ -640,6 +703,14 @@ struct AlarmSheetView: View {
         content.body = alarm.label
         content.sound = .default
         
+        // Store alarm data for voice playback with selected voice
+        let alarmData: [String: Any] = [
+            "message": alarm.label,
+            "voiceID": customVoiceIDs[selectedVoiceForMessage],
+            "voiceName": customVoiceNames[selectedVoiceForMessage]
+        ]
+        content.userInfo = alarmData
+        
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: alarm.time)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
@@ -647,7 +718,7 @@ struct AlarmSheetView: View {
         let request = UNNotificationRequest(identifier: alarm.id.uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
         
-        print("🔔 Scheduled alarm for \(alarm.label)")
+        print("🔔 Scheduled alarm for \(alarm.label) with voice: \(customVoiceNames[selectedVoiceForMessage])")
     }
 }
 
@@ -656,30 +727,18 @@ struct SetAlarmView: View {
     @Binding var alarms: [Alarm]
     @Environment(\.dismiss) var dismiss
     @State private var selectedTime = Date()
-    @State private var customAlarmMessages: [String] = ["", "", "", "", ""]
-    @State private var customVoiceNames: [String] = ["Simeon", "Rachel", "Domi", "Bella", "Josh"]
-    @State private var customVoiceIDs: [String] = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld", "tQ4MEZFJOzsahSEEZtHK", "dPah2VEoifKnZT37774q"]
+    @State private var customAlarmMessages: [String] = ["", "", ""]
+    @State private var customVoiceNames: [String] = ["Simeon", "Rachel", "Domi"]
+    @State private var customVoiceIDs: [String] = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld"]
     @State private var showingMessagePicker = false
     @State private var selectedMessageIndex = 0
     @State private var selectedVoiceForMessage = 0 // Track which voice is selected
     
-    // Predefined alarm messages
+    // Custom alarm paragraphs - ADD YOUR PARAGRAPHS HERE
     let predefinedMessages = [
-        "Good morning! Time to wake up!",
-        "Rise and shine! Your day awaits!",
-        "Wake up, sleepyhead!",
-        "Time to start your day!",
-        "Good morning, beautiful!",
-        "Rise and conquer!",
-        "Time to shine!",
-        "Wake up and be amazing!",
-        "Good morning, sunshine!",
-        "Time to get up and get going!",
-        "Rise and grind!",
-        "Wake up and make today count!",
-        "Good morning, world!",
-        "Time to face the day!",
-        "Wake up and be productive!"
+        "Wake up! It’s a new day and a new chance to take control. You’ve got breath in your lungs, strength in your body, and fire in your spirit. No more snoozing through your potential — get up and show life exactly who you are. You’re built for progress, made for impact, and today is yours to dominate. Let’s move. Let’s rise. Let’s win.",
+        "YOUR PARAGRAPH 2 HERE - Write your custom alarm message paragraph here", 
+        "YOUR PARAGRAPH 3 HERE - Write your custom alarm message paragraph here"
     ]
 
     
@@ -706,7 +765,7 @@ struct SetAlarmView: View {
                                 .padding(.leading, 5)
                             
                             VStack(spacing: 8) {
-                                ForEach(0..<5, id: \.self) { index in
+                                ForEach(0..<3, id: \.self) { index in
                                     Button(action: {
                                         showMessagePicker(for: index)
                                     }) {
@@ -745,7 +804,7 @@ struct SetAlarmView: View {
                                 .padding(.leading, 5)
                             
                             VStack(spacing: 8) {
-                                ForEach(0..<5, id: \.self) { index in
+                                ForEach(0..<3, id: \.self) { index in
                                     Button(action: {
                                         selectVoiceForMessage(index: index)
                                     }) {
@@ -792,9 +851,9 @@ struct SetAlarmView: View {
                 // Action Buttons
                 HStack(spacing: 15) {
                     Button(action: {
-                        saveAlarm()
+                        setVoiceAndMessage()
                     }) {
-                        Text("Save Alarm")
+                        Text("Set")
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundColor(.black)
@@ -846,6 +905,30 @@ struct SetAlarmView: View {
     private func selectVoiceForMessage(index: Int) {
         selectedVoiceForMessage = index
         print("🎤 Selected voice: \(customVoiceNames[index]) for message")
+    }
+    
+    private func setVoiceAndMessage() {
+        // Check if at least one message is selected
+        let hasSelectedMessage = customAlarmMessages.contains { !$0.isEmpty }
+        
+        if hasSelectedMessage {
+            // Set the voice and message settings only
+            let selectedMessage = customAlarmMessages.first { !$0.isEmpty } ?? "Alarm"
+            let selectedVoiceName = customVoiceNames[selectedVoiceForMessage]
+            let selectedVoiceID = customVoiceIDs[selectedVoiceForMessage]
+            
+            print("🎤 Voice and message settings configured:")
+            print("📝 Message: \(selectedMessage)")
+            print("🎵 Voice: \(selectedVoiceName)")
+            print("🔑 Voice ID: \(selectedVoiceID)")
+            
+            // Just configure the settings without creating an alarm
+            // The settings are now ready for when an alarm is actually created
+            dismiss()
+        } else {
+            // Show feedback that a message needs to be selected
+            print("⚠️ Please select a message before setting the voice and message")
+        }
     }
     
     private func saveAlarm() {
