@@ -2,149 +2,20 @@ import SwiftUI
 import UserNotifications
 import AVFoundation
 
+// MARK: - Main Content View
 struct ContentView: View {
+    // MARK: - Properties
     @State private var currentTime = Date()
     @State private var showingAlarmSheet = false
     @State private var alarms: [Alarm] = []
     
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
+    // MARK: - Body
     var body: some View {
         ZStack {
-            // Dark background
-            Color.black
-                .ignoresSafeArea()
-            
-            VStack(spacing: 30) {
-                // Status bar area
-                HStack {
-                    Spacer()
-                    Text("APEX APPLICATIONS LLC")
-                        .font(.system(size: 24, weight: .medium, design: .monospaced))
-                        .foregroundColor(.neonGreen)
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 100)
-                
-                Spacer()
-                
-                // Main clock display
-                VStack(spacing: 20) {
-                    // Time display
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.black)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.neonGreen, lineWidth: 2)
-                        )
-                        .overlay(
-                            Text(mainTimeString)
-                                .font(.system(size: 48, weight: .bold, design: .monospaced))
-                                .foregroundColor(.neonGreen)
-                                .shadow(color: .neonGreen.opacity(0.8), radius: 10, x: 0, y: 0)
-                        )
-                        .frame(height: 120)
-                        .padding(.horizontal, 40)
-                    
-                    // Date display
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.black)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.neonGreen, lineWidth: 1.5)
-                        )
-                        .overlay(
-                            Text(dateString)
-                                .font(.system(size: 18, weight: .medium, design: .monospaced))
-                                .foregroundColor(.neonGreen)
-                        )
-                        .frame(height: 50)
-                        .padding(.horizontal, 60)
-                }
-                
-                Spacer()
-                
-                // Alarms list
-                if !alarms.isEmpty {
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("Your Alarms")
-                            .font(.headline)
-                            .foregroundColor(.neonGreen)
-                            .padding(.leading, 20)
-                        
-                        ScrollView {
-                            VStack(spacing: 10) {
-                                ForEach(alarms.indices, id: \.self) { index in
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.black)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.neonGreen, lineWidth: 2)
-                                                .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
-                                        )
-                                        .overlay(
-                                            HStack {
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text(alarms[index].label)
-                                                        .font(.headline)
-                                                        .foregroundColor(.white)
-                                                    Text(alarms[index].time, style: .time)
-                                                        .font(.subheadline)
-                                                        .foregroundColor(.neonGreen)
-                                                }
-                                                Spacer()
-                                                Button(action: {
-                                                    alarms.remove(at: index)
-                                                }) {
-                                                    Image(systemName: "trash")
-                                                        .foregroundColor(.red)
-                                                }
-                                            }
-                                            .padding()
-                                        )
-                                        .frame(height: 60)
-                                        .padding(.horizontal, 20)
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 200)
-                    }
-                }
-                
-                // Action buttons
-                HStack(spacing: 20) {
-                    // Set Alarm button
-                    Button(action: {
-                        showingAlarmSheet = true
-                    }) {
-                        HStack {
-                            Image(systemName: "plus")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Set Alarm")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.neonGreen)
-                                .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                        )
-                    }
-                }
-                .padding(.horizontal, 40)
-                
-                Spacer()
-                
-                // Home indicator
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 134, height: 5)
-                    .cornerRadius(2.5)
-                    .padding(.bottom, 10)
-            }
+            backgroundView
+            mainContentView
         }
         .onReceive(timer) { _ in
             currentTime = Date()
@@ -158,12 +29,186 @@ struct ContentView: View {
         }
     }
     
-    private var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm"
-        return formatter.string(from: currentTime)
+    // MARK: - View Components
+    private var backgroundView: some View {
+        Color.black
+            .ignoresSafeArea()
     }
     
+    private var mainContentView: some View {
+        VStack(spacing: 30) {
+            headerView
+            Spacer()
+            clockDisplayView
+            Spacer()
+            alarmsListView
+            actionButtonsView
+            Spacer()
+            homeIndicatorView
+        }
+    }
+    
+    private var headerView: some View {
+        HStack {
+            Spacer()
+            Text("APEX APPLICATIONS LLC")
+                .font(.system(size: 24, weight: .medium, design: .monospaced))
+                .foregroundColor(.neonGreen)
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 100)
+    }
+    
+    private var clockDisplayView: some View {
+        VStack(spacing: 20) {
+            timeDisplayView
+            dateDisplayView
+        }
+    }
+    
+    private var timeDisplayView: some View {
+        RoundedRectangle(cornerRadius: 15)
+            .fill(Color.black)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.neonGreen, lineWidth: 2)
+            )
+            .overlay(
+                Text(mainTimeString)
+                    .font(.system(size: 48, weight: .bold, design: .monospaced))
+                    .foregroundColor(.neonGreen)
+                    .shadow(color: .neonGreen.opacity(0.8), radius: 10, x: 0, y: 0)
+            )
+            .frame(height: 120)
+            .padding(.horizontal, 40)
+    }
+    
+    private var dateDisplayView: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.neonGreen, lineWidth: 1.5)
+            )
+            .overlay(
+                Text(dateString)
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .foregroundColor(.neonGreen)
+            )
+            .frame(height: 50)
+            .padding(.horizontal, 60)
+    }
+    
+    private var alarmsListView: some View {
+        Group {
+            if !alarms.isEmpty {
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("Your Alarms")
+                        .font(.headline)
+                        .foregroundColor(.neonGreen)
+                        .padding(.leading, 20)
+                    
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(alarms.indices, id: \.self) { index in
+                                AlarmRowView(
+                                    alarm: alarms[index],
+                                    onDelete: {
+                                        removeNotification(for: alarms[index])
+                                        alarms.remove(at: index)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 200)
+                }
+            }
+        }
+    }
+    
+    private var actionButtonsView: some View {
+        VStack(spacing: 15) {
+            HStack(spacing: 20) {
+                setAlarmButton
+                clearAllButton
+            }
+            
+            // Generate Icons Button
+            Button(action: {
+                generateIconsNow()
+            }) {
+                HStack {
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Generate App Icons")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.neonGreen)
+                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+                )
+            }
+        }
+        .padding(.horizontal, 40)
+    }
+    
+    private var setAlarmButton: some View {
+        Button(action: {
+            showingAlarmSheet = true
+        }) {
+            HStack {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Set Alarm")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+            .foregroundColor(.black)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.neonGreen)
+                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+            )
+        }
+    }
+    
+    private var clearAllButton: some View {
+                            Button(action: {
+                        removeAllNotifications()
+                    }) {
+                        HStack {
+                            Image(systemName: "trash.circle")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Clear All")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.red)
+                                .shadow(color: .red.opacity(0.6), radius: 8, x: 0, y: 4)
+                        )
+                    }
+    }
+    
+    private var homeIndicatorView: some View {
+        Rectangle()
+            .fill(Color.gray.opacity(0.3))
+            .frame(width: 134, height: 5)
+            .cornerRadius(2.5)
+            .padding(.bottom, 10)
+    }
+    
+    // MARK: - Computed Properties
     private var mainTimeString: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm:ss a"
@@ -176,12 +221,15 @@ struct ContentView: View {
         return formatter.string(from: currentTime)
     }
     
+    // MARK: - Private Methods
     private func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-            if granted {
-                print("Notification permission granted")
-            } else {
-                print("Notification permission denied")
+            DispatchQueue.main.async {
+                if granted {
+                    print("Notification permission granted")
+                } else {
+                    print("Notification permission denied: \(error?.localizedDescription ?? "Unknown error")")
+                }
             }
         }
     }
@@ -189,28 +237,93 @@ struct ContentView: View {
     private func setupNotificationHandler() {
         UNUserNotificationCenter.current().delegate = NotificationHandler.shared
     }
+    
+    private func removeNotification(for alarm: Alarm) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [alarm.id.uuidString])
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [alarm.id.uuidString])
+        print("🔔 Removed notification for alarm: \(alarm.label)")
+    }
+    
+    private func removeAllNotifications() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        print("🔔 Removed all notifications")
+    }
+    
+    private func generateIconsNow() {
+        print("🎨 I-RIZE App Icon Instructions:")
+        print("\n📱 HOW TO ADD ICONS TO XCODE:")
+        print("1. Open Xcode")
+        print("2. In Project Navigator, click 'Assets.xcassets'")
+        print("3. Click 'AppIcon'")
+        print("4. You need to create icon images manually:")
+        print("\n   Required Icon Sizes:")
+        print("   iPhone: 20x20, 29x29, 40x40, 60x60 (2x and 3x scales)")
+        print("   iPad: 20x20, 29x29, 40x40, 76x76, 83.5x83.5")
+        print("   App Store: 1024x1024")
+        print("\n   Design Requirements:")
+        print("   - Black background")
+        print("   - 'I RIZE' text in neon green")
+        print("   - Rising sun graphic with 7 rays")
+        print("   - Rounded corners")
+        print("\n5. Create icons using any image editor (Photoshop, Figma, etc.)")
+        print("6. Drag PNG files to matching slots in Xcode")
+        print("7. Clean Build Folder (Product → Clean Build Folder)")
+        print("8. Build and run the app")
+        print("\n💡 Tip: Use the AppIconGenerator.swift file to generate icons programmatically")
+    }
 }
 
-// MARK: - ElevenLabs API Configuration
-// Add your ElevenLabs API key and voice IDs here
+// MARK: - Alarm Row View
+struct AlarmRowView: View {
+    let alarm: Alarm
+    let onDelete: () -> Void
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.neonGreen, lineWidth: 2)
+                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+            )
+            .overlay(
+                HStack {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(alarm.label)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text(alarm.time, style: .time)
+                            .font(.subheadline)
+                            .foregroundColor(.neonGreen)
+                    }
+                    Spacer()
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding()
+            )
+            .frame(height: 60)
+            .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - ElevenLabs Configuration
 struct ElevenLabsConfig {
-    // Replace with your actual ElevenLabs API key
-    static let apiKey = "sk_6b175092c8455ec2b6e5f180f8124cc289739c663ffd981b" // Add your API key here
-    
-    // Popular ElevenLabs voice IDs - replace with your actual voice IDs
-    static let voiceIDs = [
-        "voice1": "alMSnmMfBQWEfTP8MRcX", ///simeon
-        "voice2": "", // 
-        "voice3": "", //
-        "voice4": "", // 
-        "voice5": ""  // 
-    ]
-    
-    // ElevenLabs API endpoints
+    static let apiKey = "sk_6b175092c8455ec2b6e5f180f8124cc289739c663ffd981b"
     static let baseURL = "https://api.elevenlabs.io/v1"
     static let textToSpeechEndpoint = "/text-to-speech"
     
-    // Voice settings
+    static let voiceIDs = [
+        "voice1": "alMSnmMfBQWEfTP8MRcX",
+        "voice2": "",
+        "voice3": "",
+        "voice4": "",
+        "voice5": ""
+    ]
+    
     static let voiceSettings: [String: Any] = [
         "stability": 0.5,
         "similarity_boost": 0.75,
@@ -219,11 +332,11 @@ struct ElevenLabsConfig {
     ]
 }
 
-// MARK: - ElevenLabs API Service
-class ElevenLabsService {
+// MARK: - ElevenLabs Service
+final class ElevenLabsService {
     static let shared = ElevenLabsService()
     
-    init() {}
+    private init() {}
     
     func generateSpeech(text: String, voiceID: String, completion: @escaping (Data?) -> Void) {
         guard let url = URL(string: "\(ElevenLabsConfig.baseURL)\(ElevenLabsConfig.textToSpeechEndpoint)/\(voiceID)") else {
@@ -240,7 +353,7 @@ class ElevenLabsService {
         let requestBody: [String: Any] = [
             "text": text,
             "model_id": "eleven_monolingual_v1",
-            "voice_settings": ElevenLabsConfig.voiceSettings as [String: Any]
+            "voice_settings": ElevenLabsConfig.voiceSettings
         ]
         
         do {
@@ -251,52 +364,40 @@ class ElevenLabsService {
             return
         }
         
-        print("Making request to ElevenLabs API...")
-        print("URL: \(url)")
-        print("API Key: \(ElevenLabsConfig.apiKey.prefix(10))...")
-        
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                if let error = error {
-                    print("ElevenLabs API Error: \(error)")
-                    completion(nil)
-                    return
-                }
-                
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("HTTP Status Code: \(httpResponse.statusCode)")
-                    
-                    if httpResponse.statusCode == 401 {
-                        print("❌ Unauthorized - Check your API key!")
-                        print("Current API key: \(ElevenLabsConfig.apiKey)")
-                        print("🔑 Please verify your API key at https://elevenlabs.io/account")
-                        completion(nil)
-                        return
-                    } else if httpResponse.statusCode == 404 {
-                        print("❌ Voice not found - Check voice ID: \(voiceID)")
-                        completion(nil)
-                        return
-                    } else if httpResponse.statusCode != 200 {
-                        print("❌ API Error - Status code: \(httpResponse.statusCode)")
-                        completion(nil)
-                        return
-                    } else {
-                        print("✅ Success - Audio data received: \(data?.count ?? 0) bytes")
-                        
-                        // Check if data looks like valid audio
-                        if let data = data {
-                            if data.count < 100 {
-                                print("⚠️ Warning: Audio data seems too small (\(data.count) bytes)")
-                            } else {
-                                print("✅ Audio data size looks good (\(data.count) bytes)")
-                            }
-                        }
-                    }
-                }
-                
-                completion(data)
+                self.handleResponse(data: data, response: response, error: error, voiceID: voiceID, completion: completion)
             }
         }.resume()
+    }
+    
+    private func handleResponse(data: Data?, response: URLResponse?, error: Error?, voiceID: String, completion: @escaping (Data?) -> Void) {
+        if let error = error {
+            print("ElevenLabs API Error: \(error)")
+            completion(nil)
+            return
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("Invalid response type")
+            completion(nil)
+            return
+        }
+        
+        switch httpResponse.statusCode {
+        case 200:
+            print("✅ Success - Audio data received: \(data?.count ?? 0) bytes")
+            completion(data)
+        case 401:
+            print("❌ Unauthorized - Check your API key!")
+            completion(nil)
+        case 404:
+            print("❌ Voice not found - Check voice ID: \(voiceID)")
+            completion(nil)
+        default:
+            print("❌ API Error - Status code: \(httpResponse.statusCode)")
+            completion(nil)
+        }
     }
     
     func getAvailableVoices(completion: @escaping ([Voice]?) -> Void) {
@@ -320,85 +421,41 @@ class ElevenLabsService {
     }
 }
 
-// MARK: - Notification Handler for Voice Playback
-class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
+// MARK: - Notification Handler
+final class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationHandler()
-    private let elevenLabsService = ElevenLabsService()
+    private let elevenLabsService = ElevenLabsService.shared
     
-    override init() {
+    private override init() {
         super.init()
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // Show notification even when app is in foreground
         completionHandler([.banner, .sound, .badge])
-        
-        // Play ElevenLabs voice if available
-        let userInfo = notification.request.content.userInfo
-        if let message = userInfo["message"] as? String,
-           let voiceID = userInfo["voiceID"] as? String {
-            
-            print("🔔 Alarm triggered! Playing voice for message: \(message)")
-            print("🎵 Using voice ID: \(voiceID)")
-            
-            // Generate and play the voice
-            elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
-                if let audioData = audioData {
-                    print("✅ ElevenLabs audio generated successfully")
-                    DispatchQueue.main.async {
-                        self.playAlarmVoice(audioData)
-                    }
-                } else {
-                    print("❌ Failed to generate ElevenLabs audio")
-                }
-            }
-        }
+        handleNotification(notification)
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        // Handle notification when app is in background and user taps on it
-        let userInfo = response.notification.request.content.userInfo
-        if let message = userInfo["message"] as? String,
-           let voiceID = userInfo["voiceID"] as? String {
-            
-            print("🔔 Background alarm triggered! Playing voice for message: \(message)")
-            print("🎵 Using voice ID: \(voiceID)")
-            
-            // Generate and play the voice
-            elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
-                if let audioData = audioData {
-                    print("✅ ElevenLabs audio generated successfully")
-                    DispatchQueue.main.async {
-                        self.playAlarmVoice(audioData)
-                    }
-                } else {
-                    print("❌ Failed to generate ElevenLabs audio")
-                }
-            }
-        }
-        
+        handleNotification(response.notification)
         completionHandler()
     }
     
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive notification: UNNotification) {
-        // Handle notification when app is in background (iOS 10+)
+    private func handleNotification(_ notification: UNNotification) {
         let userInfo = notification.request.content.userInfo
-        if let message = userInfo["message"] as? String,
-           let voiceID = userInfo["voiceID"] as? String {
-            
-            print("🔔 Background notification received! Playing voice for message: \(message)")
-            print("🎵 Using voice ID: \(voiceID)")
-            
-            // Generate and play the voice
-            elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
-                if let audioData = audioData {
-                    print("✅ ElevenLabs audio generated successfully")
-                    DispatchQueue.main.async {
-                        self.playAlarmVoice(audioData)
-                    }
-                } else {
-                    print("❌ Failed to generate ElevenLabs audio")
+        guard let message = userInfo["message"] as? String,
+              let voiceID = userInfo["voiceID"] as? String else { return }
+        
+        print("🔔 Alarm triggered! Playing voice for message: \(message)")
+        print("🎵 Using voice ID: \(voiceID)")
+        
+        elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
+            if let audioData = audioData {
+                print("✅ ElevenLabs audio generated successfully")
+                DispatchQueue.main.async {
+                    self.playAlarmVoice(audioData)
                 }
+            } else {
+                print("❌ Failed to generate ElevenLabs audio")
             }
         }
     }
@@ -408,19 +465,7 @@ class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
             print("🎵 Playing alarm voice...")
             
             #if os(iOS)
-            // Set up audio session for alarm playback with simpler, more compatible settings
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
-            try audioSession.setActive(true)
-            print("🔊 Audio session activated for alarm with speaker output")
-            
-            // Check device volume
-            let currentVolume = audioSession.outputVolume
-            print("📱 Device volume: \(currentVolume)")
-            
-            if currentVolume < 0.1 {
-                print("⚠️ WARNING: Device volume is very low! Please turn up your device volume.")
-            }
+            try setupAudioSession()
             #endif
             
             let audioPlayer = try AVAudioPlayer(data: audioData)
@@ -429,34 +474,47 @@ class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
             
             let success = audioPlayer.play()
             print("🎵 Alarm voice player started: \(success)")
-            print("🎵 Audio duration: \(audioPlayer.duration) seconds")
             
             if success {
                 print("✅ Alarm voice is now playing")
-                
-                // Keep the audio player alive and check if it's actually playing
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    if audioPlayer.isPlaying {
-                        print("✅ Audio is still playing after 1 second")
-                    } else {
-                        print("❌ Audio stopped playing unexpectedly")
-                    }
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + audioPlayer.duration + 1) {
-                    print("🎵 Alarm voice playback finished")
-                }
+                monitorAudioPlayback(audioPlayer)
             } else {
                 print("❌ Alarm voice player failed to start")
-                
-                // Try alternative method
-                print("🔄 Trying alternative playback method...")
-                try? self.playAlarmVoiceAlternative(audioData)
+                try? playAlarmVoiceAlternative(audioData)
             }
             
         } catch {
             print("❌ Error playing alarm voice: \(error)")
-            print("Error details: \(error.localizedDescription)")
+        }
+    }
+    
+    #if os(iOS)
+    private func setupAudioSession() throws {
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
+        try audioSession.setActive(true)
+        print("🔊 Audio session activated for alarm with speaker output")
+        
+        let currentVolume = audioSession.outputVolume
+        print("📱 Device volume: \(currentVolume)")
+        
+        if currentVolume < 0.1 {
+            print("⚠️ WARNING: Device volume is very low! Please turn up your device volume.")
+        }
+    }
+    #endif
+    
+    private func monitorAudioPlayback(_ audioPlayer: AVAudioPlayer) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            if audioPlayer.isPlaying {
+                print("✅ Audio is still playing after 1 second")
+            } else {
+                print("❌ Audio stopped playing unexpectedly")
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + audioPlayer.duration + 1) {
+            print("🎵 Alarm voice playback finished")
         }
     }
     
@@ -464,7 +522,6 @@ class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
         print("🎵 Trying alternative audio playback method...")
         
         #if os(iOS)
-        // Force audio session to speaker output with simplified settings
         let audioSession = AVAudioSession.sharedInstance()
         try audioSession.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
         try audioSession.setActive(true)
@@ -486,7 +543,7 @@ class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
     }
 }
 
-// MARK: - ElevenLabs Data Models
+// MARK: - Data Models
 struct VoiceResponse: Codable {
     let voices: [Voice]
 }
@@ -504,18 +561,12 @@ struct Voice: Codable, Identifiable {
     }
 }
 
-// Custom color extension
-extension Color {
-    static let neonGreen = Color(red: 0.0, green: 1.0, blue: 0.0)
-}
-
-// Alarm model
 struct Alarm: Identifiable, Codable {
     let id: UUID
     var time: Date
     var isEnabled: Bool
     var label: String
-    var repeatDays: [Int] // 0 = Sunday, 1 = Monday, etc.
+    var repeatDays: [Int]
     
     init(time: Date, isEnabled: Bool, label: String, repeatDays: [Int]) {
         self.id = UUID()
@@ -526,14 +577,20 @@ struct Alarm: Identifiable, Codable {
     }
 }
 
-// Alarm sheet view
+// MARK: - Extensions
+extension Color {
+    static let neonGreen = Color(red: 0.0, green: 1.0, blue: 0.0)
+}
+
+// MARK: - Alarm Sheet View
 struct AlarmSheetView: View {
     @Binding var alarms: [Alarm]
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var selectedTime = Date()
-    @State private var customAlarmMessages: [String] = ["", "", "", "", ""]
-    @State private var customVoiceNames: [String] = ["Simeon", "Rachel", "Domi", "Bella", "Josh"]
-    @State private var customVoiceIDs: [String] = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld", "tQ4MEZFJOzsahSEEZtHK", "dPah2VEoifKnZT37774q"]
+    @State private var customAlarmMessages = ["", "", "", "", ""]
+    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Bella", "Josh"]
+    @State private var customVoiceIDs = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld", "tQ4MEZFJOzsahSEEZtHK", "dPah2VEoifKnZT37774q"]
     @State private var selectedVoiceForMessage = 0
     @State private var showingConfiguration = false
     
@@ -543,158 +600,100 @@ struct AlarmSheetView: View {
                 Color.black.ignoresSafeArea()
                 
                 VStack(spacing: 30) {
-                    // Title
-                    Text("Set Alarm")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.top, 20)
-                    
-                    // Time Picker Section
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("Alarm Time")
-                            .font(.headline)
-                            .foregroundColor(.neonGreen)
-                            .padding(.leading, 5)
-                        
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color.black)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Color.neonGreen, lineWidth: 2)
-                                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 0)
-                            )
-                            .overlay(
-                                Group {
-                                    #if os(iOS)
-                                    DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
-                                        .datePickerStyle(.wheel)
-                                        .labelsHidden()
-                                        .colorScheme(.dark)
-                                        .padding()
-                                    #else
-                                    DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
-                                        .labelsHidden()
-                                        .colorScheme(.dark)
-                                        .padding()
-                                    #endif
-                                }
-                            )
-                            .frame(height: 200)
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    // Alarm Selection Section
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("Select Alarm")
-                            .font(.headline)
-                            .foregroundColor(.neonGreen)
-                            .padding(.leading, 5)
-                        ForEach(0..<3, id: \.self) { index in
-                            Button(action: {
-                                // Set the alarm directly when button is pressed
-                                let alarmMessage = customAlarmMessages[index].isEmpty ? "Alarm \(index + 1)" : customAlarmMessages[index]
-                                let newAlarm = Alarm(time: selectedTime, isEnabled: true, label: alarmMessage, repeatDays: [])
-                                alarms.append(newAlarm)
-                                scheduleNotification(for: newAlarm)
-                                dismiss()
-                            }) {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.black)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.neonGreen, lineWidth: 2)
-                                            .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
-                                    )
-                                    .overlay(
-                                        HStack {
-                                            Text("Alarm \(index + 1)")
-                                                .foregroundColor(.white)
-                                                .font(.system(size: 16, weight: .medium))
-                                            Spacer()
-                                            Image(systemName: "chevron.right")
-                                                .foregroundColor(.neonGreen)
-                                        }
-                                        .padding()
-                                    )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .frame(height: 50)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    
+                    titleView
+                    timePickerSection
+                    alarmSelectionSection
                     Spacer()
-                    
-                    // Configure and Cancel Buttons
-                    VStack(spacing: 15) {
-                        Button(action: {
-                            showingConfiguration = true
-                        }) {
-                            Text("Configure Voice & Message")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.black)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.neonGreen)
-                                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                                )
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            Text("Cancel")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.black)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.neonGreen)
-                                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                                )
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                    .padding(.bottom, 20)
+                    actionButtonsSection
                 }
             }
             #if os(iOS)
             .navigationBarHidden(true)
             #endif
-            .toolbar {
-                #if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.neonGreen)
-                }
-                #else
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.neonGreen)
-                }
-                #endif
-            }
             .sheet(isPresented: $showingConfiguration) {
                 SetAlarmView(alarms: $alarms)
             }
         }
     }
     
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+    private var titleView: some View {
+        Text("Set Alarm")
+            .font(.title)
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .padding(.top, 20)
+    }
+    
+    private var timePickerSection: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Alarm Time")
+                .font(.headline)
+                .foregroundColor(.neonGreen)
+                .padding(.leading, 5)
+            
+            RoundedRectangle(cornerRadius: 15)
+                .fill(Color.black)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(Color.neonGreen, lineWidth: 2)
+                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 0)
+                )
+                .overlay(
+                    DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                        #if os(iOS)
+                        .datePickerStyle(.wheel)
+                        #endif
+                        .labelsHidden()
+                        .colorScheme(.dark)
+                        .padding()
+                )
+                .frame(height: 200)
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var alarmSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Select Alarm")
+                .font(.headline)
+                .foregroundColor(.neonGreen)
+                .padding(.leading, 5)
+            
+            ForEach(0..<3, id: \.self) { index in
+                Button(action: {
+                    createAlarm(for: index)
+                }) {
+                    AlarmSelectionRow(title: "Alarm \(index + 1)")
+                }
+                .buttonStyle(PlainButtonStyle())
+                .frame(height: 50)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var actionButtonsSection: some View {
+        VStack(spacing: 15) {
+            Button("Configure Voice & Message") {
+                showingConfiguration = true
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            
+            Button("Cancel") {
+                dismiss()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+    }
+    
+    private func createAlarm(for index: Int) {
+        let alarmMessage = customAlarmMessages[index].isEmpty ? "Alarm \(index + 1)" : customAlarmMessages[index]
+        let newAlarm = Alarm(time: selectedTime, isEnabled: true, label: alarmMessage, repeatDays: [])
+        alarms.append(newAlarm)
+        scheduleNotification(for: newAlarm)
+        dismiss()
     }
     
     private func scheduleNotification(for alarm: Alarm) {
@@ -703,7 +702,6 @@ struct AlarmSheetView: View {
         content.body = alarm.label
         content.sound = .default
         
-        // Store alarm data for voice playback with selected voice
         let alarmData: [String: Any] = [
             "message": alarm.label,
             "voiceID": customVoiceIDs[selectedVoiceForMessage],
@@ -722,179 +720,168 @@ struct AlarmSheetView: View {
     }
 }
 
-// Set Alarm view with full functionality
+// MARK: - Supporting Views
+struct AlarmSelectionRow: View {
+    let title: String
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.neonGreen, lineWidth: 2)
+                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+            )
+            .overlay(
+                HStack {
+                    Text(title)
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .medium))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.neonGreen)
+                }
+                .padding()
+            )
+    }
+}
+
+struct PrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .fontWeight(.semibold)
+            .foregroundColor(.black)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.neonGreen)
+                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+            )
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Set Alarm View
 struct SetAlarmView: View {
     @Binding var alarms: [Alarm]
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var selectedTime = Date()
-    @State private var customAlarmMessages: [String] = ["", "", ""]
-    @State private var customVoiceNames: [String] = ["Simeon", "Rachel", "Domi"]
-    @State private var customVoiceIDs: [String] = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld"]
+    @State private var customAlarmMessages = ["", "", ""]
+    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi"]
+    @State private var customVoiceIDs = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld"]
     @State private var showingMessagePicker = false
     @State private var selectedMessageIndex = 0
-    @State private var selectedVoiceForMessage = 0 // Track which voice is selected
+    @State private var selectedVoiceForMessage = 0
     
-    // Custom alarm paragraphs - ADD YOUR PARAGRAPHS HERE
-    let predefinedMessages = [
-        "Wake up! It’s a new day and a new chance to take control. You’ve got breath in your lungs, strength in your body, and fire in your spirit. No more snoozing through your potential — get up and show life exactly who you are. You’re built for progress, made for impact, and today is yours to dominate. Let’s move. Let’s rise. Let’s win.",
-        "YOUR PARAGRAPH 2 HERE - Write your custom alarm message paragraph here", 
+    private let predefinedMessages = [
+        "Wake up! It's a new day and a new chance to take control. You've got breath in your lungs, strength in your body, and fire in your spirit. No more snoozing through your potential — get up and show life exactly who you are. You're built for progress, made for impact, and today is yours to dominate. Let's move. Let's rise. Let's win.",
+        "YOUR PARAGRAPH 2 HERE - Write your custom alarm message paragraph here",
         "YOUR PARAGRAPH 3 HERE - Write your custom alarm message paragraph here"
     ]
-
     
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Title
-                Text("Set Alarm")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.top, 20)
-                    .padding(.bottom, 20)
-            
+                titleView
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 20) {
-                        // Predefined Alarm Messages Section
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Choose Alarm Messages")
-                                .font(.headline)
-                                .foregroundColor(.neonGreen)
-                                .padding(.leading, 5)
-                            
-                            VStack(spacing: 8) {
-                                ForEach(0..<3, id: \.self) { index in
-                                    Button(action: {
-                                        showMessagePicker(for: index)
-                                    }) {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.black)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(Color.neonGreen, lineWidth: 2)
-                                                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
-                                            )
-                                            .overlay(
-                                                HStack {
-                                                    Text(customAlarmMessages[index].isEmpty ? "Choose message \(index + 1)" : customAlarmMessages[index])
-                                                        .foregroundColor(customAlarmMessages[index].isEmpty ? .gray : .white)
-                                                        .font(.system(size: 16, weight: .medium))
-                                                        .lineLimit(1)
-                                                        .truncationMode(.tail)
-                                                    Spacer()
-                                                    Image(systemName: "chevron.right")
-                                                        .foregroundColor(.neonGreen)
-                                                }
-                                                .padding()
-                                            )
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .frame(height: 50)
-                                }
-                            }
-                        }
-                        
-                        // Voice Selection Section
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Select Voice for Each Message")
-                                .font(.headline)
-                                .foregroundColor(.neonGreen)
-                                .padding(.leading, 5)
-                            
-                            VStack(spacing: 8) {
-                                ForEach(0..<3, id: \.self) { index in
-                                    Button(action: {
-                                        selectVoiceForMessage(index: index)
-                                    }) {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.black)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(Color.neonGreen, lineWidth: 2)
-                                                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
-                                            )
-                                            .overlay(
-                                                HStack {
-                                                    VStack(alignment: .leading, spacing: 2) {
-                                                        Text(customVoiceNames[index])
-                                                            .foregroundColor(.white)
-                                                            .font(.system(size: 16, weight: .medium))
-                                                        if !customAlarmMessages[index].isEmpty {
-                                                            Text(customAlarmMessages[index])
-                                                                .foregroundColor(.gray)
-                                                                .font(.system(size: 12))
-                                                                .lineLimit(1)
-                                                                .truncationMode(.tail)
-                                                        }
-                                                    }
-                                                    Spacer()
-                                                    if selectedVoiceForMessage == index {
-                                                        Image(systemName: "checkmark.circle.fill")
-                                                            .foregroundColor(.neonGreen)
-                                                            .font(.title2)
-                                                    }
-                                                }
-                                                .padding()
-                                            )
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .frame(height: 60)
-                                }
-                            }
-                        }
+                        alarmMessagesSection
+                        voiceSelectionSection
                     }
                     .padding(.horizontal, 20)
                 }
-                
-                // Action Buttons
-                HStack(spacing: 15) {
-                    Button(action: {
-                        setVoiceAndMessage()
-                    }) {
-                        Text("Set")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 45)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.neonGreen)
-                                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                            )
-                    }
-                    
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("Close")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 45)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.neonGreen)
-                                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                            )
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                actionButtonsView
             }
         }
+        #if os(iOS)
+        .navigationBarHidden(true)
+        #endif
         .sheet(isPresented: $showingMessagePicker) {
             MessagePickerView(
                 selectedMessage: $customAlarmMessages[selectedMessageIndex],
                 predefinedMessages: predefinedMessages
             )
         }
-        #if os(iOS)
-        .navigationBarHidden(true)
-        #endif
+    }
+    
+    private var titleView: some View {
+        Text("Set Alarm")
+            .font(.title)
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .padding(.top, 20)
+            .padding(.bottom, 20)
+    }
+    
+    private var alarmMessagesSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Choose Alarm Messages")
+                .font(.headline)
+                .foregroundColor(.neonGreen)
+                .padding(.leading, 5)
+            
+            VStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { index in
+                    Button(action: {
+                        showMessagePicker(for: index)
+                    }) {
+                        MessageSelectionRow(
+                            message: customAlarmMessages[index],
+                            placeholder: "Choose message \(index + 1)"
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(height: 50)
+                }
+            }
+        }
+    }
+    
+    private var voiceSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Select Voice for Each Message")
+                .font(.headline)
+                .foregroundColor(.neonGreen)
+                .padding(.leading, 5)
+            
+            VStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { index in
+                    Button(action: {
+                        selectVoiceForMessage(index: index)
+                    }) {
+                        VoiceSelectionRow(
+                            voiceName: customVoiceNames[index],
+                            message: customAlarmMessages[index],
+                            isSelected: selectedVoiceForMessage == index
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(height: 60)
+                }
+            }
+        }
+    }
+    
+    private var actionButtonsView: some View {
+        HStack(spacing: 15) {
+            Button("Set") {
+                setVoiceAndMessage()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            
+            Button("Close") {
+                dismiss()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
     }
     
     private func showMessagePicker(for index: Int) {
@@ -908,11 +895,9 @@ struct SetAlarmView: View {
     }
     
     private func setVoiceAndMessage() {
-        // Check if at least one message is selected
         let hasSelectedMessage = customAlarmMessages.contains { !$0.isEmpty }
         
         if hasSelectedMessage {
-            // Set the voice and message settings only
             let selectedMessage = customAlarmMessages.first { !$0.isEmpty } ?? "Alarm"
             let selectedVoiceName = customVoiceNames[selectedVoiceForMessage]
             let selectedVoiceID = customVoiceIDs[selectedVoiceForMessage]
@@ -922,480 +907,86 @@ struct SetAlarmView: View {
             print("🎵 Voice: \(selectedVoiceName)")
             print("🔑 Voice ID: \(selectedVoiceID)")
             
-            // Just configure the settings without creating an alarm
-            // The settings are now ready for when an alarm is actually created
             dismiss()
         } else {
-            // Show feedback that a message needs to be selected
             print("⚠️ Please select a message before setting the voice and message")
         }
     }
-    
-    private func saveAlarm() {
-        let alarmMessage = customAlarmMessages.first { !$0.isEmpty } ?? "Alarm"
-        let newAlarm = Alarm(
-            time: selectedTime,
-            isEnabled: true,
-            label: alarmMessage,
-            repeatDays: []
-        )
-        
-        alarms.append(newAlarm)
-        scheduleNotification(for: newAlarm)
-        dismiss()
-    }
-    
-    private func scheduleNotification(for alarm: Alarm) {
-        let content = UNMutableNotificationContent()
-        content.title = "I-RIZE Alarm"
-        content.body = alarm.label
-        content.sound = .default
-        
-        // Store alarm data for voice playback with selected voice
-        let alarmData: [String: Any] = [
-            "message": alarm.label,
-            "voiceID": customVoiceIDs[selectedVoiceForMessage],
-            "voiceName": customVoiceNames[selectedVoiceForMessage]
-        ]
-        content.userInfo = alarmData
-        
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: alarm.time)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: alarm.id.uuidString, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request)
-        
-        print("🔔 Scheduled alarm for \(alarm.label) with voice: \(customVoiceNames[selectedVoiceForMessage])")
-    }
-    
-    private func playAudioFromData(_ data: Data) {
-        do {
-            print("🎵 Attempting to play audio data: \(data.count) bytes")
-            
-            // Check if data is valid
-            guard data.count > 0 else {
-                print("❌ Audio data is empty")
-                return
-            }
-            
-            // Check if data looks like valid audio (should be larger than a few bytes)
-            guard data.count > 100 else {
-                print("❌ Audio data too small (\(data.count) bytes) - likely not valid audio")
-                return
-            }
-            
-            #if os(iOS)
-            // For new iOS devices, we need to set up audio session properly
-            let audioSession = AVAudioSession.sharedInstance()
-            
-            // Check if we need to request audio permissions
-            if audioSession.category != .playback {
-                print("🔧 Setting up audio session for new iOS device...")
-                try audioSession.setCategory(.playback, mode: .default, options: [])
-                try audioSession.setActive(true, options: [])
-                
-                // Request audio focus
-                try audioSession.setActive(true)
-                print("✅ Audio session activated")
-            }
-            
-            // Check device volume and settings
-            let currentVolume = audioSession.outputVolume
-            print("📱 Device volume: \(currentVolume)")
-            
-            if currentVolume < 0.1 {
-                print("⚠️ CRITICAL: Device volume is very low! Please turn up your device volume.")
-                print("📱 Go to Settings > Sounds & Haptics and turn up the volume")
-            }
-            
-            // Check if device is on silent mode
-            if audioSession.outputVolume == 0 {
-                print("🔇 WARNING: Device might be on silent mode!")
-                print("📱 Check the silent switch on the side of your phone")
-            }
-            #endif
-            
-            // Try playing with proper audio session setup
-            print("🎵 Creating audio player...")
-            let audioPlayer = try AVAudioPlayer(data: data)
-            
-            // Check if audio player is ready
-            guard audioPlayer.duration > 0 else {
-                print("❌ Audio player has no duration - invalid audio data")
-                return
-            }
-            
-            // Set volume to maximum and enable speaker
-            audioPlayer.volume = 1.0
-            audioPlayer.prepareToPlay()
-            
-            let success = audioPlayer.play()
-            print("🎵 Audio player started: \(success)")
-            print("🎵 Audio duration: \(audioPlayer.duration) seconds")
-            print("🎵 Audio volume: \(audioPlayer.volume)")
-            
-            if success {
-                print("✅ Audio is now playing")
-                
-                // Keep the audio player alive and check if it's actually playing
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    if audioPlayer.isPlaying {
-                        print("✅ Audio is still playing after 1 second")
-                    } else {
-                        print("❌ Audio stopped playing unexpectedly")
-                    }
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + audioPlayer.duration + 1) {
-                    print("🎵 Audio playback should have finished")
-                }
-            } else {
-                print("❌ Audio player failed to start")
-                
-                // Try alternative method for new iOS devices
-                print("🔄 Trying alternative playback method...")
-                try? self.playAudioAlternative(data)
-            }
-            
-        } catch {
-            print("❌ Error playing audio: \(error)")
-            print("Error details: \(error.localizedDescription)")
-            
-            // Try to save the audio data to debug
-            #if os(iOS)
-            if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let audioFileURL = documentsPath.appendingPathComponent("debug_audio.mp3")
-                try? data.write(to: audioFileURL)
-                print("🔍 Debug audio saved to: \(audioFileURL.path)")
-                
-                // Also save as .wav to test different format
-                let wavFileURL = documentsPath.appendingPathComponent("debug_audio.wav")
-                try? data.write(to: wavFileURL)
-                print("🔍 Debug audio (WAV) saved to: \(wavFileURL.path)")
-            }
-            #endif
-        }
-    }
-    
-    private func playAudioAlternative(_ data: Data) throws {
-        print("🎵 Trying alternative audio playback method...")
-        
-        #if os(iOS)
-        // Force audio session to speaker output
-        let audioSession = AVAudioSession.sharedInstance()
-        try audioSession.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
-        try audioSession.setActive(true, options: [])
-        print("🔊 Set audio to speaker output")
-        #endif
-        
-        let audioPlayer = try AVAudioPlayer(data: data)
-        audioPlayer.volume = 1.0
-        audioPlayer.prepareToPlay()
-        
-        let success = audioPlayer.play()
-        print("🎵 Alternative audio player started: \(success)")
-        
-        if success {
-            print("✅ Alternative audio is now playing")
-        } else {
-            print("❌ Alternative audio player also failed")
-        }
-    }
 }
 
-// Sentence Picker View
-struct SentencePickerView: View {
-    @Binding var selectedSentence: String
-    let sentences: [String]
-    @Environment(\.dismiss) var dismiss
-    @State private var customText = ""
-    @State private var isCustomMode = false
+// MARK: - Supporting Row Views
+struct MessageSelectionRow: View {
+    let message: String
+    let placeholder: String
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    Text("Choose Alarm Message")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.top, 20)
-                    
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            // Custom Text Input
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Type Your Own Message")
-                                    .font(.headline)
-                                    .foregroundColor(.neonGreen)
-                                    .padding(.leading, 5)
-                                
-                                TextField("Enter your custom message...", text: $customText)
-                                    .foregroundColor(.white)
-                                    .textFieldStyle(PlainTextFieldStyle())
-                                    .placeholder(when: customText.isEmpty) {
-                                        Text("Enter your custom message...")
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .fill(Color.gray.opacity(0.2))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.neonGreen.opacity(0.5), lineWidth: 1)
-                                    )
-                                
-                                Button(action: {
-                                    if !customText.isEmpty {
-                                        selectedSentence = customText
-                                        dismiss()
-                                    }
-                                }) {
-                                    Text("Use Custom Message")
-                                        .foregroundColor(.black)
-                                        .fontWeight(.semibold)
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 40)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(customText.isEmpty ? Color.gray.opacity(0.3) : Color.neonGreen)
-                                        )
-                                }
-                                .disabled(customText.isEmpty)
-                            }
-                            .padding(.bottom, 20)
-                            
-                            // Divider
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 1)
-                                .padding(.horizontal, 20)
-                            
-                            // Pre-made Messages
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Or Choose from Suggestions")
-                                    .font(.headline)
-                                    .foregroundColor(.neonGreen)
-                                    .padding(.leading, 5)
-                                
-                                ForEach(sentences, id: \.self) { sentence in
-                                    Button(action: {
-                                        selectedSentence = sentence
-                                        dismiss()
-                                    }) {
-                                        HStack {
-                                            Text(sentence)
-                                                .foregroundColor(.white)
-                                                .multilineTextAlignment(.leading)
-                                            Spacer()
-                                            if selectedSentence == sentence {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundColor(.neonGreen)
-                                            }
-                                        }
-                                        .padding()
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(selectedSentence == sentence ? Color.neonGreen.opacity(0.2) : Color.gray.opacity(0.2))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(selectedSentence == sentence ? Color.neonGreen : Color.gray.opacity(0.3), lineWidth: 1)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                    
-                    Spacer()
-                }
-            }
-            #if os(iOS)
-            .navigationBarHidden(true)
-            #endif
-            .toolbar {
-                #if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.neonGreen)
-                }
-                #else
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.neonGreen)
-                }
-                #endif
-            }
-        }
-    }
-}
-
-// Voice Picker View
-struct VoicePickerView: View {
-    @Binding var selectedVoiceID: String
-    let availableVoices: [Voice]
-    @Environment(\.dismiss) var dismiss
-    @State private var searchText = ""
-    
-    var filteredVoices: [Voice] {
-        if searchText.isEmpty {
-            return availableVoices
-        } else {
-            return availableVoices.filter { voice in
-                voice.name.localizedCaseInsensitiveContains(searchText) ||
-                voice.category.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-    }
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    // Search Bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-                        TextField("Search voices...", text: $searchText)
-                            .foregroundColor(.white)
-                            .textFieldStyle(PlainTextFieldStyle())
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.gray.opacity(0.2))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.neonGreen.opacity(0.5), lineWidth: 1)
-                    )
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                    
-                    // Voices List
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredVoices, id: \.id) { voice in
-                                VoiceRowView(
-                                    voice: voice,
-                                    isSelected: selectedVoiceID == voice.id,
-                                    onSelect: {
-                                        selectedVoiceID = voice.id
-                                        dismiss()
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                    }
-                }
-            }
-            .navigationTitle("Select Voice")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                #if os(iOS)
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.neonGreen)
-                }
-                #else
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.neonGreen)
-                }
-                #endif
-            }
-        }
-    }
-}
-
-// Voice Row View
-struct VoiceRowView: View {
-    let voice: Voice
-    let isSelected: Bool
-    let onSelect: () -> Void
-    
-    var body: some View {
-        Button(action: onSelect) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(voice.name)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Text(voice.category)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    if let description = voice.description {
-                        Text(description)
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                            .lineLimit(2)
-                    }
-                }
-                
-                Spacer()
-                
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.neonGreen)
-                        .font(.title2)
-                }
-            }
-            .padding()
-            .background(
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black)
+            .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.neonGreen.opacity(0.2) : Color.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isSelected ? Color.neonGreen : Color.gray.opacity(0.3), lineWidth: 1)
-                    )
+                    .stroke(Color.neonGreen, lineWidth: 2)
+                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
             )
-        }
-        .buttonStyle(PlainButtonStyle())
+            .overlay(
+                HStack {
+                    Text(message.isEmpty ? placeholder : message)
+                        .foregroundColor(message.isEmpty ? .gray : .white)
+                        .font(.system(size: 16, weight: .medium))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.neonGreen)
+                }
+                .padding()
+            )
     }
 }
 
-// Placeholder extension for TextField
-extension View {
-    func placeholder<Content: View>(
-        when shouldShow: Bool,
-        alignment: Alignment = .leading,
-        @ViewBuilder placeholder: () -> Content) -> some View {
-        
-        ZStack(alignment: alignment) {
-            placeholder().opacity(shouldShow ? 1 : 0)
-            self
-        }
+struct VoiceSelectionRow: View {
+    let voiceName: String
+    let message: String
+    let isSelected: Bool
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.neonGreen, lineWidth: 2)
+                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+            )
+            .overlay(
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(voiceName)
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .medium))
+                        if !message.isEmpty {
+                            Text(message)
+                                .foregroundColor(.gray)
+                                .font(.system(size: 12))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                    }
+                    Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.neonGreen)
+                            .font(.title2)
+                    }
+                }
+                .padding()
+            )
     }
 }
 
-// Message Picker View
+// MARK: - Message Picker View
 struct MessagePickerView: View {
     @Binding var selectedMessage: String
     let predefinedMessages: [String]
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
@@ -1417,25 +1008,9 @@ struct MessagePickerView: View {
                                     selectedMessage = message
                                     dismiss()
                                 }) {
-                                    HStack {
-                                        Text(message)
-                                            .foregroundColor(.white)
-                                            .multilineTextAlignment(.leading)
-                                            .font(.system(size: 16, weight: .medium))
-                                        Spacer()
-                                        if selectedMessage == message {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.neonGreen)
-                                        }
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(selectedMessage == message ? Color.neonGreen.opacity(0.2) : Color.black)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(selectedMessage == message ? Color.neonGreen : Color.gray.opacity(0.3), lineWidth: 1)
-                                            )
+                                    MessagePickerRow(
+                                        message: message,
+                                        isSelected: selectedMessage == message
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -1472,6 +1047,35 @@ struct MessagePickerView: View {
     }
 }
 
+struct MessagePickerRow: View {
+    let message: String
+    let isSelected: Bool
+    
+    var body: some View {
+        HStack {
+            Text(message)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
+                .font(.system(size: 16, weight: .medium))
+            Spacer()
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .foregroundColor(.neonGreen)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isSelected ? Color.neonGreen.opacity(0.2) : Color.black)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.neonGreen : Color.gray.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+}
+
+// MARK: - Preview
 #Preview {
     ContentView()
 } 
