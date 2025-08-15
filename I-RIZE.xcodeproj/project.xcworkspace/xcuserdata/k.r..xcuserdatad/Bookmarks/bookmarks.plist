@@ -10,15 +10,15 @@
 				<key>location-parameters</key>
 				<dict>
 					<key>EndingColumnNumber</key>
-					<string>4</string>
+					<string>0</string>
 					<key>EndingLineNumber</key>
 					<string>257</string>
 					<key>StartingColumnNumber</key>
-					<string>4</string>
+					<string>0</string>
 					<key>StartingLineNumber</key>
 					<string>257</string>
 					<key>Timestamp</key>
-					<string>776129747.554105</string>
+					<string>776794696.506315</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -36,13 +36,13 @@
 				<key>focused</key>
 				<string></string>
 				<key>leading</key>
-				<string>        print("1. Open Xcode")
-        print("2. In Project Navigator, click 'Assets.xcassets'")
-    </string>
+				<string>                            .foregroundColor(.red)
+                    }
+</string>
 				<key>trailing</key>
-				<string>    print("3. Click 'AppIcon'")
-        print("4. You need to create icon images manually:")
-        print("\n   Required Icon Sizes:")
+				<string>                    .onLongPressGesture(minimumDuration: 1.0) {
+                        onClearAll()
+                        print("🔔 Long-pressed trash button - cleared all notifications")
 </string>
 			</dict>
 			<key>type</key>

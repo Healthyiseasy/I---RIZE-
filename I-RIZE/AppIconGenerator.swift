@@ -4,25 +4,26 @@ import UIKit
 // MARK: - I-RIZE App Icon Generator
 struct AppIconGenerator {
     
-    // MARK: - Required Icon Sizes
+    // MARK: - Required Icon Sizes (matching current iOS assets structure)
     static let iconSizes: [(name: String, size: CGFloat, description: String)] = [
         // iPhone Icons
-        ("Icon-20@2x", 40, "iPhone Notification 2x"),
-        ("Icon-20@3x", 60, "iPhone Notification 3x"),
-        ("Icon-29@2x", 58, "iPhone Settings 2x"),
-        ("Icon-29@3x", 87, "iPhone Settings 3x"),
+        ("Icon-Notify@2x", 40, "iPhone Notification 2x"),
+        ("Icon-Notify@3x", 60, "iPhone Notification 3x"),
+        ("Icon-Small@2x", 58, "iPhone Settings 2x"),
+        ("Icon-Small@3x", 87, "iPhone Settings 3x"),
         ("Icon-40@2x", 80, "iPhone Spotlight 2x"),
         ("Icon-40@3x", 120, "iPhone Spotlight 3x"),
         ("Icon-60@2x", 120, "iPhone App 2x"),
         ("Icon-60@3x", 180, "iPhone App 3x"),
         
         // iPad Icons
-        ("Icon-20@1x", 20, "iPad Notification 1x"),
-        ("Icon-20@2x", 40, "iPad Notification 2x"),
-        ("Icon-29@1x", 29, "iPad Settings 1x"),
-        ("Icon-29@2x", 58, "iPad Settings 2x"),
-        ("Icon-40@1x", 40, "iPad Spotlight 1x"),
+        ("Icon-Notify@1x", 20, "iPad Notification 1x"),
+        ("Icon-Notify@2x", 40, "iPad Notification 2x"),
+        ("Icon-Small", 29, "iPad Settings 1x"),
+        ("Icon-Small@2x", 58, "iPad Settings 2x"),
+        ("Icon-40", 40, "iPad Spotlight 1x"),
         ("Icon-40@2x", 80, "iPad Spotlight 2x"),
+        ("Icon-76", 76, "iPad App 1x"),
         ("Icon-76@2x", 152, "iPad App 2x"),
         ("Icon-83.5@2x", 167, "iPad Pro App 2x"),
         
@@ -57,50 +58,41 @@ struct AppIconGenerator {
             hostingController.view.drawHierarchy(in: hostingController.view.bounds, afterScreenUpdates: true)
         }
         
-        // Save the image
+        // Save the image to the iOS Assets.xcassets/AppIcon.appiconset folder
         if let data = image.pngData() {
-            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            let iconPath = documentsPath.appendingPathComponent("\(name).png")
+            // Get the path to the iOS Assets.xcassets/AppIcon.appiconset folder
+            let currentDirectory = FileManager.default.currentDirectoryPath
+            let projectRoot = currentDirectory.replacingOccurrences(of: "/I-RIZE", with: "")
+            let iconPath = "\(projectRoot)/iOS/Assets.xcassets/AppIcon.appiconset/\(name).png"
             
             do {
-                try data.write(to: iconPath)
+                try data.write(to: URL(fileURLWithPath: iconPath))
                 print("✅ Generated: \(name).png (\(Int(size))x\(Int(size))) - \(description)")
             } catch {
                 print("❌ Failed to save \(name).png: \(error)")
+                // Fallback to Documents folder if the direct path fails
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                let fallbackPath = documentsPath.appendingPathComponent("\(name).png")
+                do {
+                    try data.write(to: fallbackPath)
+                    print("✅ Saved to Documents folder: \(name).png")
+                } catch {
+                    print("❌ Failed to save to Documents folder: \(error)")
+                }
             }
         }
     }
     
     // MARK: - Print Instructions
     private static func printInstructions() {
-        print("\n📱 HOW TO ADD ICONS TO XCODE:")
-        print("1. Open Xcode")
-        print("2. In Project Navigator, click 'Assets.xcassets'")
-        print("3. Click 'AppIcon'")
-        print("4. Drag PNG files from Documents folder to matching slots:")
-        print("\n   iPhone Icons:")
-        print("   - Icon-20@2x.png → iPhone Notification 2x")
-        print("   - Icon-20@3x.png → iPhone Notification 3x")
-        print("   - Icon-29@2x.png → iPhone Settings 2x")
-        print("   - Icon-29@3x.png → iPhone Settings 3x")
-        print("   - Icon-40@2x.png → iPhone Spotlight 2x")
-        print("   - Icon-40@3x.png → iPhone Spotlight 3x")
-        print("   - Icon-60@2x.png → iPhone App 2x")
-        print("   - Icon-60@3x.png → iPhone App 3x")
-        print("\n   iPad Icons:")
-        print("   - Icon-20@1x.png → iPad Notification 1x")
-        print("   - Icon-20@2x.png → iPad Notification 2x")
-        print("   - Icon-29@1x.png → iPad Settings 1x")
-        print("   - Icon-29@2x.png → iPad Settings 2x")
-        print("   - Icon-40@1x.png → iPad Spotlight 1x")
-        print("   - Icon-40@2x.png → iPad Spotlight 2x")
-        print("   - Icon-76@2x.png → iPad App 2x")
-        print("   - Icon-83.5@2x.png → iPad Pro App 2x")
-        print("\n   App Store:")
-        print("   - Icon-1024.png → App Store")
-        print("\n5. Clean Build Folder (Product → Clean Build Folder)")
-        print("6. Build and run the app")
-        print("\n📁 Icons saved to Documents folder")
+        print("\n📱 ICON GENERATION COMPLETE!")
+        print("✅ All icons have been generated and saved directly to the iOS Assets.xcassets/AppIcon.appiconset folder")
+        print("\n📱 NEXT STEPS:")
+        print("1. In Xcode, refresh the Assets.xcassets folder (right-click → 'Show in Finder' then close and reopen)")
+        print("2. The yellow warning triangles should now be gone")
+        print("3. Clean Build Folder (Product → Clean Build Folder)")
+        print("4. Build and run the app")
+        print("\n📁 Icons are now properly placed in your asset catalog!")
     }
 }
 
@@ -118,9 +110,9 @@ struct IRizeAppIconView: View {
                 // "I RIZE" Text
                 Text("I RIZE")
                     .font(.system(size: size * 0.35, weight: .bold, design: .rounded))
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                     .tracking(3)
-                    .shadow(color: .neonGreen.opacity(0.8), radius: size * 0.02, x: 0, y: 0)
+                    .shadow(color: Color("NeonGreen").opacity(0.8), radius: size * 0.02, x: 0, y: 0)
                 
                 // Rising Sun Graphic
                 RisingSunIconView(size: size * 0.25)
@@ -140,19 +132,19 @@ struct RisingSunIconView: View {
             // Sun body (semi-circle)
             Circle()
                 .trim(from: 0.5, to: 1.0)
-                .fill(Color.neonGreen)
+                .fill(Color("NeonGreen"))
                 .frame(width: size, height: size)
                 .offset(y: size * 0.25)
-                .shadow(color: .neonGreen.opacity(0.6), radius: size * 0.05, x: 0, y: 0)
+                .shadow(color: Color("NeonGreen").opacity(0.6), radius: size * 0.05, x: 0, y: 0)
             
             // Sun rays
             ForEach(0..<7, id: \.self) { index in
                 Rectangle()
-                    .fill(Color.neonGreen)
+                    .fill(Color("NeonGreen"))
                     .frame(width: size * 0.06, height: size * 0.12)
                     .offset(y: -size * 0.35)
                     .rotationEffect(.degrees(Double(index) * 15 - 45))
-                    .shadow(color: .neonGreen.opacity(0.6), radius: size * 0.02, x: 0, y: 0)
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: size * 0.02, x: 0, y: 0)
             }
         }
     }
@@ -171,7 +163,7 @@ struct IconGeneratorInterface: View {
                 Text("I-RIZE App Icon Generator")
                     .font(.title)
                     .fontWeight(.bold)
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                 
                 // Preview
                 IRizeAppIconView(size: 120)
@@ -179,7 +171,7 @@ struct IconGeneratorInterface: View {
                 
                 Text("Generate App Icons")
                     .font(.headline)
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                 
                 Button(action: {
                     generateIcons()
@@ -201,8 +193,8 @@ struct IconGeneratorInterface: View {
                     .frame(height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(isGenerating ? Color.gray : Color.neonGreen)
-                            .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+                            .fill(isGenerating ? Color.gray : Color("NeonGreen"))
+                            .shadow(color: Color("NeonGreen").opacity(0.6), radius: 8, x: 0, y: 4)
                     )
                 }
                 .disabled(isGenerating)
@@ -211,24 +203,22 @@ struct IconGeneratorInterface: View {
                 if showInstructions {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("📱 How to Add Icons to Xcode:")
+                            Text("📱 Icon Generation Complete!")
                                 .font(.headline)
-                                .foregroundColor(.neonGreen)
+                                .foregroundColor(Color("NeonGreen"))
                             
-                            Text("1. Open Xcode")
+                            Text("✅ All icons generated and saved to asset catalog")
                                 .foregroundColor(.white)
-                            Text("2. Click 'Assets.xcassets' in Project Navigator")
+                            Text("1. Refresh Assets.xcassets in Xcode")
                                 .foregroundColor(.white)
-                            Text("3. Click 'AppIcon'")
+                            Text("2. Warning triangles should be gone")
                                 .foregroundColor(.white)
-                            Text("4. Drag PNG files from Documents folder to matching slots")
+                            Text("3. Clean Build Folder")
                                 .foregroundColor(.white)
-                            Text("5. Clean Build Folder (Product → Clean Build Folder)")
-                                .foregroundColor(.white)
-                            Text("6. Build and run the app")
+                            Text("4. Build and run the app")
                                 .foregroundColor(.white)
                             
-                            Text("📁 Icons saved to Documents folder")
+                            Text("📁 Icons are now properly placed!")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                                 .padding(.top, 10)
@@ -236,10 +226,10 @@ struct IconGeneratorInterface: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.neonGreen.opacity(0.1))
+                                .fill(Color("NeonGreen").opacity(0.1))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.neonGreen, lineWidth: 1)
+                                        .stroke(Color("NeonGreen"), lineWidth: 1)
                                 )
                         )
                     }

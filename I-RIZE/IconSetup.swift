@@ -99,9 +99,9 @@ struct IRizeIconView: View {
                 // "I RIZE" Text
                 Text("I RIZE")
                     .font(.system(size: size * 0.35, weight: .bold, design: .rounded))
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                     .tracking(3)
-                    .shadow(color: .neonGreen.opacity(0.8), radius: size * 0.02, x: 0, y: 0)
+                    .shadow(color: Color("NeonGreen").opacity(0.8), radius: size * 0.02, x: 0, y: 0)
                 
                 // Rising Sun Graphic
                 RisingSunIconView(size: size * 0.25)
@@ -121,19 +121,19 @@ struct RisingSunIconView: View {
             // Sun body (semi-circle)
             Circle()
                 .trim(from: 0.5, to: 1.0)
-                .fill(Color.neonGreen)
+                .fill(Color("NeonGreen"))
                 .frame(width: size, height: size)
                 .offset(y: size * 0.25)
-                .shadow(color: .neonGreen.opacity(0.6), radius: size * 0.05, x: 0, y: 0)
+                .shadow(color: Color("NeonGreen").opacity(0.45), radius: size * 0.05, x: 0, y: 0)
             
             // Sun rays
             ForEach(0..<7, id: \.self) { index in
                 Rectangle()
-                    .fill(Color.neonGreen)
+                    .fill(Color("NeonGreen"))
                     .frame(width: size * 0.06, height: size * 0.12)
                     .offset(y: -size * 0.35)
                     .rotationEffect(.degrees(Double(index) * 15 - 45))
-                    .shadow(color: .neonGreen.opacity(0.6), radius: size * 0.02, x: 0, y: 0)
+                    .shadow(color: Color("NeonGreen").opacity(0.45), radius: size * 0.02, x: 0, y: 0)
             }
         }
     }
@@ -152,7 +152,7 @@ struct IconSetupView: View {
                 Text("I-RIZE Icon Setup")
                     .font(.title)
                     .fontWeight(.bold)
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                 
                 // Preview
                 IRizeIconView(size: 120)
@@ -160,7 +160,7 @@ struct IconSetupView: View {
                 
                 Text("Generate App Icons")
                     .font(.headline)
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                 
                 Button(action: {
                     generateIcons()
@@ -182,8 +182,8 @@ struct IconSetupView: View {
                     .frame(height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(isGenerating ? Color.gray : Color.neonGreen)
-                            .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+                            .fill(isGenerating ? Color.gray : Color("NeonGreen"))
+                            .shadow(color: Color("NeonGreen").opacity(0.45), radius: 8, x: 0, y: 4)
                     )
                 }
                 .disabled(isGenerating)
@@ -194,7 +194,7 @@ struct IconSetupView: View {
                         VStack(alignment: .leading, spacing: 15) {
                             Text("📱 How to Add Icons to Xcode:")
                                 .font(.headline)
-                                .foregroundColor(.neonGreen)
+                                .foregroundColor(Color("NeonGreen"))
                             
                             Text("1. Open Xcode")
                                 .foregroundColor(.white)
@@ -217,10 +217,10 @@ struct IconSetupView: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.neonGreen.opacity(0.1))
+                                .fill(Color("NeonGreen").opacity(0.1))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.neonGreen, lineWidth: 1)
+                                        .stroke(Color("NeonGreen"), lineWidth: 1)
                                 )
                         )
                     }

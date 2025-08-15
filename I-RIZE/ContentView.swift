@@ -53,7 +53,7 @@ struct ContentView: View {
             Spacer()
             Text("APEX APPLICATIONS LLC")
                 .font(.system(size: 24, weight: .medium, design: .monospaced))
-                .foregroundColor(.neonGreen)
+                .foregroundColor(Color("NeonGreen"))
             Spacer()
         }
         .padding(.horizontal, 20)
@@ -72,13 +72,13 @@ struct ContentView: View {
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.neonGreen, lineWidth: 2)
+                    .stroke(Color("NeonGreen"), lineWidth: 2)
             )
             .overlay(
                 Text(mainTimeString)
                     .font(.system(size: 48, weight: .bold, design: .monospaced))
-                    .foregroundColor(.neonGreen)
-                    .shadow(color: .neonGreen.opacity(0.8), radius: 10, x: 0, y: 0)
+                    .foregroundColor(Color("NeonGreen"))
+                    .shadow(color: Color("NeonGreen").opacity(0.8), radius: 10, x: 0, y: 0)
             )
             .frame(height: 120)
             .padding(.horizontal, 40)
@@ -89,12 +89,12 @@ struct ContentView: View {
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.neonGreen, lineWidth: 1.5)
+                    .stroke(Color("NeonGreen"), lineWidth: 1.5)
             )
             .overlay(
                 Text(dateString)
                     .font(.system(size: 18, weight: .medium, design: .monospaced))
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
             )
             .frame(height: 50)
             .padding(.horizontal, 60)
@@ -106,7 +106,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 15) {
                     Text("Your Alarms")
                         .font(.headline)
-                        .foregroundColor(.neonGreen)
+                        .foregroundColor(Color("NeonGreen"))
                         .padding(.leading, 20)
                     
                     ScrollView {
@@ -117,43 +117,35 @@ struct ContentView: View {
                                     onDelete: {
                                         removeNotification(for: alarms[index])
                                         alarms.remove(at: index)
-                                    }
+                                        
+                                        // If this was the last alarm, also clear all notifications
+                                        if alarms.isEmpty {
+                                            removeAllNotifications()
+                                            print("🔔 Last alarm removed - cleared all notifications")
+                                        }
+                                    },
+                                    onClearAll: removeAllNotifications
                                 )
                             }
                         }
                     }
                     .frame(maxHeight: 200)
+                    
+                    // Hint about long-press functionality
+                    if !alarms.isEmpty {
+                        Text("💡 Long-press any trash button to clear all notifications")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .padding(.top, 5)
+                    }
                 }
             }
         }
     }
     
     private var actionButtonsView: some View {
-        VStack(spacing: 15) {
-            HStack(spacing: 20) {
-                setAlarmButton
-                clearAllButton
-            }
-            
-            // Generate Icons Button
-            Button(action: {
-                generateIconsNow()
-            }) {
-                HStack {
-                    Image(systemName: "wand.and.stars")
-                        .font(.system(size: 16, weight: .semibold))
-                    Text("Generate App Icons")
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.neonGreen)
-                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
-                )
-            }
+        HStack(spacing: 20) {
+            setAlarmButton
         }
         .padding(.horizontal, 40)
     }
@@ -173,32 +165,13 @@ struct ContentView: View {
             .frame(height: 50)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.neonGreen)
-                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+                    .fill(Color("NeonGreen"))
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 8, x: 0, y: 4)
             )
         }
     }
     
-    private var clearAllButton: some View {
-                            Button(action: {
-                        removeAllNotifications()
-                    }) {
-                        HStack {
-                            Image(systemName: "trash.circle")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Clear All")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.red)
-                                .shadow(color: .red.opacity(0.6), radius: 8, x: 0, y: 4)
-                        )
-                    }
-    }
+
     
     private var homeIndicatorView: some View {
         Rectangle()
@@ -250,42 +223,22 @@ struct ContentView: View {
         print("🔔 Removed all notifications")
     }
     
-    private func generateIconsNow() {
-        print("🎨 I-RIZE App Icon Instructions:")
-        print("\n📱 HOW TO ADD ICONS TO XCODE:")
-        print("1. Open Xcode")
-        print("2. In Project Navigator, click 'Assets.xcassets'")
-        print("3. Click 'AppIcon'")
-        print("4. You need to create icon images manually:")
-        print("\n   Required Icon Sizes:")
-        print("   iPhone: 20x20, 29x29, 40x40, 60x60 (2x and 3x scales)")
-        print("   iPad: 20x20, 29x29, 40x40, 76x76, 83.5x83.5")
-        print("   App Store: 1024x1024")
-        print("\n   Design Requirements:")
-        print("   - Black background")
-        print("   - 'I RIZE' text in neon green")
-        print("   - Rising sun graphic with 7 rays")
-        print("   - Rounded corners")
-        print("\n5. Create icons using any image editor (Photoshop, Figma, etc.)")
-        print("6. Drag PNG files to matching slots in Xcode")
-        print("7. Clean Build Folder (Product → Clean Build Folder)")
-        print("8. Build and run the app")
-        print("\n💡 Tip: Use the AppIconGenerator.swift file to generate icons programmatically")
-    }
+
 }
 
 // MARK: - Alarm Row View
 struct AlarmRowView: View {
     let alarm: Alarm
     let onDelete: () -> Void
+    let onClearAll: () -> Void
     
     var body: some View {
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.neonGreen, lineWidth: 2)
-                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+                    .stroke(Color("NeonGreen"), lineWidth: 2)
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 6, x: 0, y: 0)
             )
             .overlay(
                 HStack {
@@ -295,12 +248,16 @@ struct AlarmRowView: View {
                             .foregroundColor(.white)
                         Text(alarm.time, style: .time)
                             .font(.subheadline)
-                            .foregroundColor(.neonGreen)
+                            .foregroundColor(Color("NeonGreen"))
                     }
                     Spacer()
                     Button(action: onDelete) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
+                    }
+                    .onLongPressGesture(minimumDuration: 1.0) {
+                        onClearAll()
+                        print("🔔 Long-pressed trash button - cleared all notifications")
                     }
                 }
                 .padding()
@@ -311,12 +268,37 @@ struct AlarmRowView: View {
 }
 
 // MARK: - ElevenLabs Configuration
+// This configuration provides different voice keys and settings for each character:
+// - Simeon: Friendly and approachable voice
+// - Rachel: Warm and caring voice  
+// - Domi: Energetic and dynamic voice
+// - Mr. Rubio: Professional and authoritative voice
+//
+// To use different voices, simply pass the character name to the generateSpeech method:
+// elevenLabsService.generateSpeech(text: "Hello!", voiceName: "Simeon")
+// elevenLabsService.generateSpeech(text: "Welcome!", voiceName: "Rachel")
+// elevenLabsService.generateSpeech(text: "Let's go!", voiceName: "Domi")
+// elevenLabsService.generateSpeech(text: "Important message", voiceName: "Mr. Rubio")
 struct ElevenLabsConfig {
+    // MARK: - API Configuration
     static let apiKey = "sk_6b175092c8455ec2b6e5f180f8124cc289739c663ffd981b"
     static let baseURL = "https://api.elevenlabs.io/v1"
     static let textToSpeechEndpoint = "/text-to-speech"
     
+    // MARK: - Voice ID Configuration
+    // TODO: Replace these placeholder IDs with actual Eleven Labs voice IDs
+    // You can find your voice IDs in the Eleven Labs dashboard or via API
+    static let simeonVoiceID = "alMSnmMfBQWEfTP8MRcX"  // Replace with actual Simeon voice ID
+    static let rachelVoiceID = "alMSnmMfBQWEfTP8MRcX"  // Replace with actual Rachel voice ID
+    static let domiVoiceID = "alMSnmMfBQWEfTP8MRcX"    // Replace with actual Domi voice ID
+    static let mrRubioVoiceID = "alMSnmMfBQWEfTP8MRcX" // Replace with actual Mr. Rubio voice ID
+    
+    // Voice IDs for different character voices
     static let voiceIDs = [
+        "Simeon": simeonVoiceID,
+        "Rachel": rachelVoiceID,
+        "Domi": domiVoiceID,
+        "Mr. Rubio": mrRubioVoiceID,
         "voice1": "alMSnmMfBQWEfTP8MRcX",
         "voice2": "",
         "voice3": "",
@@ -324,10 +306,47 @@ struct ElevenLabsConfig {
         "voice5": ""
     ]
     
+    // Get available character voice names
+    static func getAvailableCharacterVoiceNames() -> [String] {
+        return ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+    }
+    
     static let voiceSettings: [String: Any] = [
         "stability": 0.5,
         "similarity_boost": 0.75,
         "style": 0.0,
+        "use_speaker_boost": true
+    ]
+    
+    // Custom voice settings for Mr. Rubio (more professional/authoritative)
+    static let mrRubioVoiceSettings: [String: Any] = [
+        "stability": 0.7,        // Higher stability for consistent professional tone
+        "similarity_boost": 0.8, // Higher similarity for clear pronunciation
+        "style": 0.2,            // Slight style boost for character
+        "use_speaker_boost": true
+    ]
+    
+    // Custom voice settings for Simeon (friendly and approachable)
+    static let simeonVoiceSettings: [String: Any] = [
+        "stability": 0.6,        // Balanced stability for natural conversation
+        "similarity_boost": 0.7, // Good similarity for clear speech
+        "style": 0.3,            // Style boost for personality
+        "use_speaker_boost": true
+    ]
+    
+    // Custom voice settings for Rachel (warm and caring)
+    static let rachelVoiceSettings: [String: Any] = [
+        "stability": 0.65,       // Stable but expressive
+        "similarity_boost": 0.75, // Clear pronunciation
+        "style": 0.4,            // Higher style for warmth
+        "use_speaker_boost": true
+    ]
+    
+    // Custom voice settings for Domi (energetic and dynamic)
+    static let domiVoiceSettings: [String: Any] = [
+        "stability": 0.55,       // Lower stability for more dynamic expression
+        "similarity_boost": 0.7, // Good similarity
+        "style": 0.5,            // Higher style for energy
         "use_speaker_boost": true
     ]
 }
@@ -338,7 +357,14 @@ final class ElevenLabsService {
     
     private init() {}
     
-    func generateSpeech(text: String, voiceID: String, completion: @escaping (Data?) -> Void) {
+    func generateSpeech(text: String, voiceName: String, completion: @escaping (Data?) -> Void) {
+        // Get the voice ID from the voice name
+        guard let voiceID = ElevenLabsConfig.voiceIDs[voiceName] else {
+            print("❌ Voice not found: \(voiceName)")
+            completion(nil)
+            return
+        }
+        
         guard let url = URL(string: "\(ElevenLabsConfig.baseURL)\(ElevenLabsConfig.textToSpeechEndpoint)/\(voiceID)") else {
             print("Invalid URL for voice ID: \(voiceID)")
             completion(nil)
@@ -350,10 +376,25 @@ final class ElevenLabsService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(ElevenLabsConfig.apiKey, forHTTPHeaderField: "xi-api-key")
         
+        // Use appropriate voice settings based on the voice name
+        let voiceSettings: [String: Any]
+        switch voiceName {
+        case "Mr. Rubio":
+            voiceSettings = ElevenLabsConfig.mrRubioVoiceSettings
+        case "Simeon":
+            voiceSettings = ElevenLabsConfig.simeonVoiceSettings
+        case "Rachel":
+            voiceSettings = ElevenLabsConfig.rachelVoiceSettings
+        case "Domi":
+            voiceSettings = ElevenLabsConfig.domiVoiceSettings
+        default:
+            voiceSettings = ElevenLabsConfig.voiceSettings
+        }
+        
         let requestBody: [String: Any] = [
             "text": text,
             "model_id": "eleven_monolingual_v1",
-            "voice_settings": ElevenLabsConfig.voiceSettings
+            "voice_settings": voiceSettings
         ]
         
         do {
@@ -419,6 +460,51 @@ final class ElevenLabsService {
             }
         }.resume()
     }
+    
+    // Get available voice names from our configuration
+    func getAvailableVoiceNames() -> [String] {
+        return Array(ElevenLabsConfig.voiceIDs.keys).filter { !$0.isEmpty }
+    }
+    
+    // Get available character voice names specifically
+    func getAvailableCharacterVoiceNames() -> [String] {
+        return ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+    }
+    
+    // Get voice settings for a specific character
+    func getVoiceSettings(for voiceName: String) -> [String: Any] {
+        switch voiceName {
+        case "Mr. Rubio":
+            return ElevenLabsConfig.mrRubioVoiceSettings
+        case "Simeon":
+            return ElevenLabsConfig.simeonVoiceSettings
+        case "Rachel":
+            return ElevenLabsConfig.rachelVoiceSettings
+        case "Domi":
+            return ElevenLabsConfig.domiVoiceSettings
+        default:
+            return ElevenLabsConfig.voiceSettings
+        }
+    }
+    
+    // Validate if a voice name is a valid character voice
+    func isValidCharacterVoice(_ voiceName: String) -> Bool {
+        return getAvailableCharacterVoiceNames().contains(voiceName)
+    }
+    
+    // Get voice ID for a specific character
+    func getVoiceID(for characterName: String) -> String? {
+        return ElevenLabsConfig.voiceIDs[characterName]
+    }
+    
+    // Get comprehensive voice information for a character
+    func getVoiceInfo(for characterName: String) -> (id: String?, settings: [String: Any])? {
+        guard let voiceID = ElevenLabsConfig.voiceIDs[characterName] else {
+            return nil
+        }
+        let settings = getVoiceSettings(for: characterName)
+        return (id: voiceID, settings: settings)
+    }
 }
 
 // MARK: - Notification Handler
@@ -443,12 +529,15 @@ final class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
     private func handleNotification(_ notification: UNNotification) {
         let userInfo = notification.request.content.userInfo
         guard let message = userInfo["message"] as? String,
-              let voiceID = userInfo["voiceID"] as? String else { return }
+              let voiceName = userInfo["voiceName"] as? String else { 
+            print("❌ Missing required notification data: message or voiceName")
+            return 
+        }
         
         print("🔔 Alarm triggered! Playing voice for message: \(message)")
-        print("🎵 Using voice ID: \(voiceID)")
+        print("🎵 Using voice: \(voiceName)")
         
-        elevenLabsService.generateSpeech(text: message, voiceID: voiceID) { audioData in
+        elevenLabsService.generateSpeech(text: message, voiceName: voiceName) { audioData in
             if let audioData = audioData {
                 print("✅ ElevenLabs audio generated successfully")
                 DispatchQueue.main.async {
@@ -567,19 +656,21 @@ struct Alarm: Identifiable, Codable {
     var isEnabled: Bool
     var label: String
     var repeatDays: [Int]
+    var voiceName: String
     
-    init(time: Date, isEnabled: Bool, label: String, repeatDays: [Int]) {
+    init(time: Date, isEnabled: Bool, label: String, repeatDays: [Int], voiceName: String) {
         self.id = UUID()
         self.time = time
         self.isEnabled = isEnabled
         self.label = label
         self.repeatDays = repeatDays
+        self.voiceName = voiceName
     }
 }
 
 // MARK: - Extensions
 extension Color {
-    static let neonGreen = Color(red: 0.0, green: 1.0, blue: 0.0)
+    // Removed duplicate color definition - using Color("NeonGreen") from assets
 }
 
 // MARK: - Alarm Sheet View
@@ -589,10 +680,11 @@ struct AlarmSheetView: View {
     
     @State private var selectedTime = Date()
     @State private var customAlarmMessages = ["", "", "", "", ""]
-    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Bella", "Josh"]
-    @State private var customVoiceIDs = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld", "tQ4MEZFJOzsahSEEZtHK", "dPah2VEoifKnZT37774q"]
+    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
     @State private var selectedVoiceForMessage = 0
     @State private var showingConfiguration = false
+    @State private var configuredVoiceName = "Simeon" // Default voice
+    @State private var configuredMessage = "" // Will be set from SetAlarmView
     
     var body: some View {
         NavigationView {
@@ -611,7 +703,11 @@ struct AlarmSheetView: View {
             .navigationBarHidden(true)
             #endif
             .sheet(isPresented: $showingConfiguration) {
-                SetAlarmView(alarms: $alarms)
+                SetAlarmView(
+                    alarms: $alarms,
+                    configuredVoiceName: $configuredVoiceName,
+                    configuredMessage: $configuredMessage
+                )
             }
         }
     }
@@ -628,15 +724,15 @@ struct AlarmSheetView: View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Alarm Time")
                 .font(.headline)
-                .foregroundColor(.neonGreen)
+                .foregroundColor(Color("NeonGreen"))
                 .padding(.leading, 5)
             
             RoundedRectangle(cornerRadius: 15)
                 .fill(Color.black)
                 .overlay(
                     RoundedRectangle(cornerRadius: 15)
-                        .stroke(Color.neonGreen, lineWidth: 2)
-                        .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 0)
+                        .stroke(Color("NeonGreen"), lineWidth: 2)
+                        .shadow(color: Color("NeonGreen").opacity(0.6), radius: 8, x: 0, y: 0)
                 )
                 .overlay(
                     DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
@@ -656,7 +752,7 @@ struct AlarmSheetView: View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Select Alarm")
                 .font(.headline)
-                .foregroundColor(.neonGreen)
+                .foregroundColor(Color("NeonGreen"))
                 .padding(.leading, 5)
             
             ForEach(0..<3, id: \.self) { index in
@@ -689,14 +785,27 @@ struct AlarmSheetView: View {
     }
     
     private func createAlarm(for index: Int) {
-        let alarmMessage = customAlarmMessages[index].isEmpty ? "Alarm \(index + 1)" : customAlarmMessages[index]
-        let newAlarm = Alarm(time: selectedTime, isEnabled: true, label: alarmMessage, repeatDays: [])
+        // Use configured message and voice if available, otherwise use defaults
+        let alarmMessage = configuredMessage.isEmpty ? "Alarm \(index + 1)" : configuredMessage
+        let selectedVoice = configuredVoiceName
+        
+        // Create alarm with voice information
+        let newAlarm = Alarm(
+            time: selectedTime, 
+            isEnabled: true, 
+            label: alarmMessage, 
+            repeatDays: [],
+            voiceName: selectedVoice
+        )
         alarms.append(newAlarm)
-        scheduleNotification(for: newAlarm)
+        scheduleNotification(for: newAlarm, voiceName: selectedVoice)
+        
+        print("🔔 Created alarm: \(alarmMessage) with voice: \(selectedVoice)")
+        print("🔔 Alarm details - Time: \(selectedTime), Message: \(alarmMessage), Voice: \(selectedVoice)")
         dismiss()
     }
     
-    private func scheduleNotification(for alarm: Alarm) {
+    private func scheduleNotification(for alarm: Alarm, voiceName: String) {
         let content = UNMutableNotificationContent()
         content.title = "I-RIZE Alarm"
         content.body = alarm.label
@@ -704,8 +813,7 @@ struct AlarmSheetView: View {
         
         let alarmData: [String: Any] = [
             "message": alarm.label,
-            "voiceID": customVoiceIDs[selectedVoiceForMessage],
-            "voiceName": customVoiceNames[selectedVoiceForMessage]
+            "voiceName": voiceName
         ]
         content.userInfo = alarmData
         
@@ -716,7 +824,8 @@ struct AlarmSheetView: View {
         let request = UNNotificationRequest(identifier: alarm.id.uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
         
-        print("🔔 Scheduled alarm for \(alarm.label) with voice: \(customVoiceNames[selectedVoiceForMessage])")
+        print("🔔 Scheduled alarm for \(alarm.label) with voice: \(voiceName)")
+        print("🔔 Notification data: \(alarmData)")
     }
 }
 
@@ -729,8 +838,8 @@ struct AlarmSelectionRow: View {
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.neonGreen, lineWidth: 2)
-                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+                    .stroke(Color("NeonGreen"), lineWidth: 2)
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 6, x: 0, y: 0)
             )
             .overlay(
                 HStack {
@@ -739,7 +848,7 @@ struct AlarmSelectionRow: View {
                         .font(.system(size: 16, weight: .medium))
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .foregroundColor(.neonGreen)
+                        .foregroundColor(Color("NeonGreen"))
                 }
                 .padding()
             )
@@ -756,8 +865,8 @@ struct PrimaryButtonStyle: ButtonStyle {
             .frame(height: 50)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.neonGreen)
-                    .shadow(color: .neonGreen.opacity(0.6), radius: 8, x: 0, y: 4)
+                    .fill(Color("NeonGreen"))
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 8, x: 0, y: 4)
             )
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
@@ -767,15 +876,25 @@ struct PrimaryButtonStyle: ButtonStyle {
 // MARK: - Set Alarm View
 struct SetAlarmView: View {
     @Binding var alarms: [Alarm]
+    @Binding var configuredVoiceName: String
+    @Binding var configuredMessage: String
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedTime = Date()
-    @State private var customAlarmMessages = ["", "", ""]
-    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi"]
-    @State private var customVoiceIDs = ["alMSnmMfBQWEfTP8MRcX", "V33LkP9pVLdcjeB2y5Na", "AZnzlk1XvdvUeBnXmlld"]
+    @State private var customAlarmMessages = ["", "", "", ""]
+    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
     @State private var showingMessagePicker = false
     @State private var selectedMessageIndex = 0
     @State private var selectedVoiceForMessage = 0
+    
+    // Debug: Print voice configuration on init
+    init(alarms: Binding<[Alarm]>, configuredVoiceName: Binding<String>, configuredMessage: Binding<String>) {
+        self._alarms = alarms
+        self._configuredVoiceName = configuredVoiceName
+        self._configuredMessage = configuredMessage
+        print("🎤 SetAlarmView initialized with voices: \(["Simeon", "Rachel", "Domi", "Mr. Rubio"])")
+        print("🎤 Voice count: \(["Simeon", "Rachel", "Domi", "Mr. Rubio"].count)")
+    }
     
     private let predefinedMessages = [
         "Wake up! It's a new day and a new chance to take control. You've got breath in your lungs, strength in your body, and fire in your spirit. No more snoozing through your potential — get up and show life exactly who you are. You're built for progress, made for impact, and today is yours to dominate. Let's move. Let's rise. Let's win.",
@@ -790,10 +909,11 @@ struct SetAlarmView: View {
             VStack(spacing: 0) {
                 titleView
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 20) {
-                        alarmMessagesSection
-                        voiceSelectionSection
-                    }
+                                VStack(spacing: 20) {
+                alarmMessagesSection
+                voiceSelectionSection
+                currentConfigurationSection
+            }
                     .padding(.horizontal, 20)
                 }
                 actionButtonsView
@@ -807,6 +927,22 @@ struct SetAlarmView: View {
                 selectedMessage: $customAlarmMessages[selectedMessageIndex],
                 predefinedMessages: predefinedMessages
             )
+        }
+        .onAppear {
+            print("🎤 SetAlarmView appeared with voices: \(customVoiceNames)")
+            print("🎤 Voice count: \(customVoiceNames.count)")
+            print("🎤 Messages count: \(customAlarmMessages.count)")
+            
+            // Initialize configuration if not already set
+            if configuredVoiceName.isEmpty {
+                configuredVoiceName = customVoiceNames[0] // Default to first voice
+            }
+            if configuredMessage.isEmpty {
+                // Find first non-empty message
+                if let firstMessage = customAlarmMessages.first(where: { !$0.isEmpty }) {
+                    configuredMessage = firstMessage
+                }
+            }
         }
     }
     
@@ -823,11 +959,11 @@ struct SetAlarmView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Choose Alarm Messages")
                 .font(.headline)
-                .foregroundColor(.neonGreen)
+                .foregroundColor(Color("NeonGreen"))
                 .padding(.leading, 5)
             
             VStack(spacing: 8) {
-                ForEach(0..<3, id: \.self) { index in
+                ForEach(0..<customAlarmMessages.count, id: \.self) { index in
                     Button(action: {
                         showMessagePicker(for: index)
                     }) {
@@ -847,23 +983,80 @@ struct SetAlarmView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Select Voice for Each Message")
                 .font(.headline)
-                .foregroundColor(.neonGreen)
+                .foregroundColor(Color("NeonGreen"))
+                .padding(.leading, 5)
+            
+            // Debug info
+            Text("Available voices: \(customVoiceNames.joined(separator: ", "))")
+                .foregroundColor(.gray)
+                .font(.caption)
                 .padding(.leading, 5)
             
             VStack(spacing: 8) {
-                ForEach(0..<3, id: \.self) { index in
+                ForEach(0..<customVoiceNames.count, id: \.self) { index in
                     Button(action: {
                         selectVoiceForMessage(index: index)
                     }) {
                         VoiceSelectionRow(
                             voiceName: customVoiceNames[index],
-                            message: customAlarmMessages[index],
+                            message: index < customAlarmMessages.count ? customAlarmMessages[index] : "",
                             isSelected: selectedVoiceForMessage == index
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
                     .frame(height: 60)
                 }
+            }
+        }
+    }
+    
+    private var currentConfigurationSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Current Configuration")
+                .font(.headline)
+                .foregroundColor(Color("NeonGreen"))
+                .padding(.leading, 5)
+            
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Selected Voice:")
+                        .foregroundColor(.white)
+                        .font(.system(size: 14, weight: .medium))
+                    Spacer()
+                    Text(configuredVoiceName)
+                        .foregroundColor(Color("NeonGreen"))
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color("NeonGreen"), lineWidth: 1)
+                        )
+                )
+                
+                HStack {
+                    Text("Selected Message:")
+                        .foregroundColor(.white)
+                        .font(.system(size: 14, weight: .medium))
+                    Spacer()
+                    Text(configuredMessage.isEmpty ? "No message selected" : "Message configured")
+                        .foregroundColor(configuredMessage.isEmpty ? .gray : Color("NeonGreen"))
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color("NeonGreen"), lineWidth: 1)
+                        )
+                )
             }
         }
     }
@@ -889,9 +1082,20 @@ struct SetAlarmView: View {
         showingMessagePicker = true
     }
     
+    private func onMessageSelected(_ message: String) {
+        customAlarmMessages[selectedMessageIndex] = message
+        configuredMessage = message
+        print("📝 Message selected: \(message)")
+    }
+    
     private func selectVoiceForMessage(index: Int) {
         selectedVoiceForMessage = index
         print("🎤 Selected voice: \(customVoiceNames[index]) for message")
+        print("🎤 Available voices: \(customVoiceNames)")
+        print("🎤 Selected index: \(index)")
+        
+        // Update the configured voice name immediately
+        configuredVoiceName = customVoiceNames[index]
     }
     
     private func setVoiceAndMessage() {
@@ -900,12 +1104,15 @@ struct SetAlarmView: View {
         if hasSelectedMessage {
             let selectedMessage = customAlarmMessages.first { !$0.isEmpty } ?? "Alarm"
             let selectedVoiceName = customVoiceNames[selectedVoiceForMessage]
-            let selectedVoiceID = customVoiceIDs[selectedVoiceForMessage]
+            
+            // Save the configuration back to the main alarm sheet view
+            configuredMessage = selectedMessage
+            configuredVoiceName = selectedVoiceName
             
             print("🎤 Voice and message settings configured:")
             print("📝 Message: \(selectedMessage)")
             print("🎵 Voice: \(selectedVoiceName)")
-            print("🔑 Voice ID: \(selectedVoiceID)")
+            print("✅ Configuration saved to main alarm view")
             
             dismiss()
         } else {
@@ -924,8 +1131,8 @@ struct MessageSelectionRow: View {
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.neonGreen, lineWidth: 2)
-                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+                    .stroke(Color("NeonGreen"), lineWidth: 2)
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 6, x: 0, y: 0)
             )
             .overlay(
                 HStack {
@@ -936,7 +1143,7 @@ struct MessageSelectionRow: View {
                         .truncationMode(.tail)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .foregroundColor(.neonGreen)
+                        .foregroundColor(Color("NeonGreen"))
                 }
                 .padding()
             )
@@ -953,8 +1160,8 @@ struct VoiceSelectionRow: View {
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.neonGreen, lineWidth: 2)
-                    .shadow(color: .neonGreen.opacity(0.6), radius: 6, x: 0, y: 0)
+                    .stroke(Color("NeonGreen"), lineWidth: 2)
+                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 6, x: 0, y: 0)
             )
             .overlay(
                 HStack {
@@ -973,7 +1180,7 @@ struct VoiceSelectionRow: View {
                     Spacer()
                     if isSelected {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.neonGreen)
+                            .foregroundColor(Color("NeonGreen"))
                             .font(.title2)
                     }
                 }
@@ -1032,14 +1239,14 @@ struct MessagePickerView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                 }
                 #else
                 ToolbarItem(placement: .primaryAction) {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
                 }
                 #endif
             }
@@ -1060,16 +1267,16 @@ struct MessagePickerRow: View {
             Spacer()
             if isSelected {
                 Image(systemName: "checkmark")
-                    .foregroundColor(.neonGreen)
+                    .foregroundColor(Color("NeonGreen"))
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? Color.neonGreen.opacity(0.2) : Color.black)
+                .fill(isSelected ? Color("NeonGreen").opacity(0.2) : Color.black)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.neonGreen : Color.gray.opacity(0.3), lineWidth: 1)
+                        .stroke(isSelected ? Color("NeonGreen") : Color.gray.opacity(0.3), lineWidth: 1)
                 )
         )
     }
