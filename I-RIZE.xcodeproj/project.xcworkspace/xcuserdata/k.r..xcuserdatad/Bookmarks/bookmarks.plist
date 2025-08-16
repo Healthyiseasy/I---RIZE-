@@ -12,13 +12,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>257</string>
+					<string>1</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>257</string>
+					<string>1</string>
 					<key>Timestamp</key>
-					<string>776794696.506315</string>
+					<string>777049757.460502</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -36,13 +36,12 @@
 				<key>focused</key>
 				<string></string>
 				<key>leading</key>
-				<string>                if granted {
-                    print("✅ Notification permission granted")
+				<string>import SwiftUI
 </string>
 				<key>trailing</key>
-				<string>                    // Check current notification settings
-                    self.checkNotificationSettings()
-                } else {
+				<string>import UserNotifications
+import AVFoundation
+
 </string>
 			</dict>
 			<key>type</key>
