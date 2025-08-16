@@ -58,12 +58,11 @@ struct AppIconGenerator {
             hostingController.view.drawHierarchy(in: hostingController.view.bounds, afterScreenUpdates: true)
         }
         
-        // Save the image to the iOS Assets.xcassets/AppIcon.appiconset folder
+        // Save the image to the main Assets.xcassets/AppIcon.appiconset folder
         if let data = image.pngData() {
-            // Get the path to the iOS Assets.xcassets/AppIcon.appiconset folder
+            // Get the path to the main Assets.xcassets/AppIcon.appiconset folder
             let currentDirectory = FileManager.default.currentDirectoryPath
-            let projectRoot = currentDirectory.replacingOccurrences(of: "/I-RIZE", with: "")
-            let iconPath = "\(projectRoot)/iOS/Assets.xcassets/AppIcon.appiconset/\(name).png"
+            let iconPath = "\(currentDirectory)/Assets.xcassets/AppIcon.appiconset/\(name).png"
             
             do {
                 try data.write(to: URL(fileURLWithPath: iconPath))
@@ -86,7 +85,7 @@ struct AppIconGenerator {
     // MARK: - Print Instructions
     private static func printInstructions() {
         print("\n📱 ICON GENERATION COMPLETE!")
-        print("✅ All icons have been generated and saved directly to the iOS Assets.xcassets/AppIcon.appiconset folder")
+        print("✅ All icons have been generated and saved directly to the main Assets.xcassets/AppIcon.appiconset folder")
         print("\n📱 NEXT STEPS:")
         print("1. In Xcode, refresh the Assets.xcassets folder (right-click → 'Show in Finder' then close and reopen)")
         print("2. The yellow warning triangles should now be gone")

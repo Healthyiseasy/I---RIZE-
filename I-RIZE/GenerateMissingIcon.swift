@@ -40,7 +40,7 @@ if let tiffData = image.tiffRepresentation,
     
     let currentDirectory = FileManager.default.currentDirectoryPath
     let projectRoot = currentDirectory.replacingOccurrences(of: "/I-RIZE", with: "")
-    let iconPath = "\(projectRoot)/iOS/Assets.xcassets/AppIcon.appiconset/Icon-1024.png"
+            let iconPath = "\(currentDirectory)/Assets.xcassets/AppIcon.appiconset/Icon-1024.png"
     
     do {
         try pngData.write(to: URL(fileURLWithPath: iconPath))

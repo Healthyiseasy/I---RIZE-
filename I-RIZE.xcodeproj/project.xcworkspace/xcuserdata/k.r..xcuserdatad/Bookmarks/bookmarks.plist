@@ -36,13 +36,13 @@
 				<key>focused</key>
 				<string></string>
 				<key>leading</key>
-				<string>                            .foregroundColor(.red)
-                    }
+				<string>                if granted {
+                    print("✅ Notification permission granted")
 </string>
 				<key>trailing</key>
-				<string>                    .onLongPressGesture(minimumDuration: 1.0) {
-                        onClearAll()
-                        print("🔔 Long-pressed trash button - cleared all notifications")
+				<string>                    // Check current notification settings
+                    self.checkNotificationSettings()
+                } else {
 </string>
 			</dict>
 			<key>type</key>

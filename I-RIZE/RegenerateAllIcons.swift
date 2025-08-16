@@ -65,8 +65,7 @@ func generateIcon(name: String, size: CGFloat, description: String) {
        let pngData = bitmapImage.representation(using: .png, properties: [:]) {
         
         let currentDirectory = FileManager.default.currentDirectoryPath
-        let projectRoot = currentDirectory.replacingOccurrences(of: "/I-RIZE", with: "")
-        let iconPath = "\(projectRoot)/iOS/Assets.xcassets/AppIcon.appiconset/\(name).png"
+        let iconPath = "\(currentDirectory)/Assets.xcassets/AppIcon.appiconset/\(name).png"
         
         do {
             try pngData.write(to: URL(fileURLWithPath: iconPath))
@@ -85,5 +84,5 @@ for (name, size, description) in iconSizes {
 }
 
 print("\n✅ All icons regenerated successfully!")
-print("📁 Icons saved to iOS/Assets.xcassets/AppIcon.appiconset/")
+        print("📁 Icons saved to main Assets.xcassets/AppIcon.appiconset/")
 print("🔄 Refresh Xcode Assets.xcassets to see the changes")

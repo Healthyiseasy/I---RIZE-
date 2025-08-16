@@ -21,7 +21,7 @@ struct ContentView: View {
             currentTime = Date()
         }
         .sheet(isPresented: $showingAlarmSheet) {
-            AlarmSheetView(alarms: $alarms)
+            AlarmSheetView(alarms: $alarms, onRemoveNotification: removeNotification)
         }
         .onAppear {
             requestNotificationPermission()
@@ -144,10 +144,60 @@ struct ContentView: View {
     }
     
     private var actionButtonsView: some View {
-        HStack(spacing: 20) {
-            setAlarmButton
+        VStack(spacing: 15) {
+            HStack(spacing: 20) {
+                setAlarmButton
+            }
+            .padding(.horizontal, 40)
+            
+            // Test notification button
+            Button(action: {
+                testNotification()
+            }) {
+                HStack {
+                    Image(systemName: "bell.badge")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Test Notification")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.orange)
+                        .shadow(color: Color.orange.opacity(0.6), radius: 4, x: 0, y: 2)
+                )
+            }
+            .padding(.horizontal, 60)
+            
+            // Check ElevenLabs configuration button
+            Button(action: {
+                checkElevenLabsConfig()
+            }) {
+                HStack {
+                    Image(systemName: "gear.badge.checkmark")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Check ElevenLabs Config")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.red)
+                        .shadow(color: Color.red.opacity(0.6), radius: 4, x: 0, y: 2)
+                )
+            }
+            .padding(.horizontal, 60)
+            
+            // Hint about long-press functionality
+            Text("💡 Long-press Set Alarm button to clear all alarms")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
         }
-        .padding(.horizontal, 40)
     }
     
     private var setAlarmButton: some View {
@@ -168,6 +218,11 @@ struct ContentView: View {
                     .fill(Color("NeonGreen"))
                     .shadow(color: Color("NeonGreen").opacity(0.6), radius: 8, x: 0, y: 4)
             )
+        }
+        .onLongPressGesture(minimumDuration: 1.0) {
+            removeAllNotifications()
+            alarms.removeAll()
+            print("🔔 Long-pressed Set Alarm button - cleared all alarms and notifications")
         }
     }
     
@@ -196,12 +251,30 @@ struct ContentView: View {
     
     // MARK: - Private Methods
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound, .provisional]) { granted, error in
             DispatchQueue.main.async {
                 if granted {
-                    print("Notification permission granted")
+                    print("✅ Notification permission granted")
+                    // Check current notification settings
+                    self.checkNotificationSettings()
                 } else {
-                    print("Notification permission denied: \(error?.localizedDescription ?? "Unknown error")")
+                    print("❌ Notification permission denied: \(error?.localizedDescription ?? "Unknown error")")
+                }
+            }
+        }
+    }
+    
+    private func checkNotificationSettings() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                print("📱 Notification settings:")
+                print("   - Authorization status: \(settings.authorizationStatus.rawValue)")
+                print("   - Alert setting: \(settings.alertSetting.rawValue)")
+                print("   - Sound setting: \(settings.soundSetting.rawValue)")
+                print("   - Badge setting: \(settings.badgeSetting.rawValue)")
+                
+                if settings.authorizationStatus == .denied {
+                    print("⚠️ WARNING: Notifications are denied! Please enable in Settings > I-RIZE > Notifications")
                 }
             }
         }
@@ -221,6 +294,73 @@ struct ContentView: View {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         print("🔔 Removed all notifications")
+    }
+    
+    private func testNotification() {
+        print("🧪 Testing notification system...")
+        
+        // Check notification permissions
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                print("📱 Current notification settings:")
+                print("   - Authorization: \(settings.authorizationStatus.rawValue)")
+                print("   - Alert: \(settings.alertSetting.rawValue)")
+                print("   - Sound: \(settings.soundSetting.rawValue)")
+                print("   - Badge: \(settings.badgeSetting.rawValue)")
+                
+                if settings.authorizationStatus == .authorized {
+                    // Send a test notification
+                    let content = UNMutableNotificationContent()
+                    content.title = "Test Alarm"
+                    content.body = "This is a test notification to verify the system works"
+                    content.sound = .default
+                    content.userInfo = [
+                        "message": "This is a test alarm message",
+                        "voiceName": "Simeon",
+                        "alarmID": "test-123"
+                    ]
+                    
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
+                    let request = UNNotificationRequest(identifier: "test-notification", content: content, trigger: trigger)
+                    
+                    UNUserNotificationCenter.current().add(request) { error in
+                        DispatchQueue.main.async {
+                            if let error = error {
+                                print("❌ Test notification failed: \(error.localizedDescription)")
+                            } else {
+                                print("✅ Test notification scheduled successfully")
+                                print("🔔 Will fire in 3 seconds")
+                            }
+                        }
+                    }
+                } else {
+                    print("❌ Notifications not authorized - cannot send test")
+                }
+            }
+        }
+    }
+    
+    private func checkElevenLabsConfig() {
+        print("🔧 Checking ElevenLabs configuration...")
+        
+        let errors = ElevenLabsConfig.validateConfiguration()
+        
+        if errors.isEmpty {
+            print("✅ ElevenLabs configuration is valid!")
+            print("🔑 API Key: Configured")
+            print("🎭 Voice IDs: All configured")
+        } else {
+            print("❌ ElevenLabs configuration has errors:")
+            for error in errors {
+                print(error)
+            }
+            print("\n📋 TO FIX THESE ERRORS:")
+            print("1. Go to https://elevenlabs.io/")
+            print("2. Sign in to your account")
+            print("3. Get your API key from Profile → API Key")
+            print("4. Get Voice IDs from Voice Library → Copy Voice ID")
+            print("5. Replace the placeholder values in ElevenLabsConfig")
+        }
     }
     
 
@@ -268,7 +408,7 @@ struct AlarmRowView: View {
 }
 
 // MARK: - ElevenLabs Configuration
-// This configuration provides different voice keys and settings for each character:
+// This configuration provides different voice keys and settings for each  character:
 // - Simeon: Friendly and approachable voice
 // - Rachel: Warm and caring voice  
 // - Domi: Energetic and dynamic voice
@@ -281,17 +421,19 @@ struct AlarmRowView: View {
 // elevenLabsService.generateSpeech(text: "Important message", voiceName: "Mr. Rubio")
 struct ElevenLabsConfig {
     // MARK: - API Configuration
-    static let apiKey = "sk_6b175092c8455ec2b6e5f180f8124cc289739c663ffd981b"
+    // ⚠️ IMPORTANT: Replace with your actual ElevenLabs API key
+    // Get it from: https://elevenlabs.io/ → Profile → API Key
+    static let apiKey = "YOUR_ACTUAL_API_KEY_HERE"
     static let baseURL = "https://api.elevenlabs.io/v1"
     static let textToSpeechEndpoint = "/text-to-speech"
     
     // MARK: - Voice ID Configuration
-    // TODO: Replace these placeholder IDs with actual Eleven Labs voice IDs
-    // You can find your voice IDs in the Eleven Labs dashboard or via API
-    static let simeonVoiceID = "alMSnmMfBQWEfTP8MRcX"  // Replace with actual Simeon voice ID
-    static let rachelVoiceID = "alMSnmMfBQWEfTP8MRcX"  // Replace with actual Rachel voice ID
-    static let domiVoiceID = "alMSnmMfBQWEfTP8MRcX"    // Replace with actual Domi voice ID
-    static let mrRubioVoiceID = "alMSnmMfBQWEfTP8MRcX" // Replace with actual Mr. Rubio voice ID
+    // ⚠️ IMPORTANT: Replace these with your actual ElevenLabs Voice IDs
+    // Get them from: https://elevenlabs.io/ → Voice Library → Copy Voice ID
+    static let simeonVoiceID = "YOUR_SIMEON_VOICE_ID"  // Replace with actual Simeon voice ID
+    static let rachelVoiceID = "YOUR_RACHEL_VOICE_ID"  // Replace with actual Rachel voice ID
+    static let domiVoiceID = "YOUR_DOMI_VOICE_ID"      // Replace with actual Domi voice ID
+    static let mrRubioVoiceID = "YOUR_MR_RUBIO_VOICE_ID" // Replace with actual Mr. Rubio voice ID
     
     // Voice IDs for different character voices
     static let voiceIDs = [
@@ -299,7 +441,7 @@ struct ElevenLabsConfig {
         "Rachel": rachelVoiceID,
         "Domi": domiVoiceID,
         "Mr. Rubio": mrRubioVoiceID,
-        "voice1": "alMSnmMfBQWEfTP8MRcX",
+        "voice1": "",
         "voice2": "",
         "voice3": "",
         "voice4": "",
@@ -309,6 +451,32 @@ struct ElevenLabsConfig {
     // Get available character voice names
     static func getAvailableCharacterVoiceNames() -> [String] {
         return ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+    }
+    
+    // Validate configuration
+    static func validateConfiguration() -> [String] {
+        var errors: [String] = []
+        
+        // Check API key
+        if apiKey == "YOUR_ACTUAL_API_KEY_HERE" || apiKey.isEmpty {
+            errors.append("❌ API Key not configured - Replace 'YOUR_ACTUAL_API_KEY_HERE' with your real API key")
+        }
+        
+        // Check voice IDs
+        if simeonVoiceID == "YOUR_SIMEON_VOICE_ID" || simeonVoiceID.isEmpty {
+            errors.append("❌ Simeon Voice ID not configured")
+        }
+        if rachelVoiceID == "YOUR_RACHEL_VOICE_ID" || rachelVoiceID.isEmpty {
+            errors.append("❌ Rachel Voice ID not configured")
+        }
+        if domiVoiceID == "YOUR_DOMI_VOICE_ID" || domiVoiceID.isEmpty {
+            errors.append("❌ Domi Voice ID not configured")
+        }
+        if mrRubioVoiceID == "YOUR_MR_RUBIO_VOICE_ID" || mrRubioVoiceID.isEmpty {
+            errors.append("❌ Mr. Rubio Voice ID not configured")
+        }
+        
+        return errors
     }
     
     static let voiceSettings: [String: Any] = [
@@ -517,35 +685,74 @@ final class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("🔔 Notification will present: \(notification.request.identifier)")
+        print("🔔 User info: \(notification.request.content.userInfo)")
+        
+        // Always show notification even when app is in foreground
         completionHandler([.banner, .sound, .badge])
+        
+        // Handle the notification immediately
         handleNotification(notification)
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("🔔 Notification response received: \(response.notification.request.identifier)")
+        print("🔔 Action identifier: \(response.actionIdentifier)")
+        
         handleNotification(response.notification)
         completionHandler()
     }
     
     private func handleNotification(_ notification: UNNotification) {
+        print("🔔 Processing notification: \(notification.request.identifier)")
+        print("🔔 Full user info: \(notification.request.content.userInfo)")
+        
         let userInfo = notification.request.content.userInfo
+        
+        // Check if this is an alarm notification
         guard let message = userInfo["message"] as? String,
               let voiceName = userInfo["voiceName"] as? String else { 
             print("❌ Missing required notification data: message or voiceName")
+            print("❌ Available keys: \(userInfo.keys)")
             return 
+        }
+        
+        print("✅ Notification data validated:")
+        print("   - Message: \(message)")
+        print("   - Voice: \(voiceName)")
+        print("   - Alarm ID: \(userInfo["alarmID"] ?? "Unknown")")
+        
+        // Check if voice is valid
+        guard ElevenLabsConfig.voiceIDs[voiceName] != nil else {
+            print("❌ Invalid voice name: \(voiceName)")
+            print("❌ Available voices: \(ElevenLabsConfig.voiceIDs.keys)")
+            return
         }
         
         print("🔔 Alarm triggered! Playing voice for message: \(message)")
         print("🎵 Using voice: \(voiceName)")
         
+        // Generate speech with timeout
+        let timeout = DispatchTime.now() + 30.0 // 30 second timeout
         elevenLabsService.generateSpeech(text: message, voiceName: voiceName) { audioData in
             if let audioData = audioData {
-                print("✅ ElevenLabs audio generated successfully")
+                print("✅ ElevenLabs audio generated successfully: \(audioData.count) bytes")
                 DispatchQueue.main.async {
                     self.playAlarmVoice(audioData)
                 }
             } else {
                 print("❌ Failed to generate ElevenLabs audio")
+                print("❌ This could be due to:")
+                print("   - Invalid API key")
+                print("   - Invalid voice ID")
+                print("   - Network issues")
+                print("   - ElevenLabs service error")
             }
+        }
+        
+        // Check if we're taking too long
+        DispatchQueue.main.asyncAfter(deadline: timeout) {
+            print("⏰ ElevenLabs request timeout - audio may still be processing")
         }
     }
     
@@ -668,6 +875,164 @@ struct Alarm: Identifiable, Codable {
     }
 }
 
+// MARK: - Quick Assignment Sheet
+struct QuickAssignmentSheet: View {
+    @Binding var customAlarmMessages: [String]
+    @Binding var customVoiceNames: [String]
+    @Binding var voiceMessageAssignments: [String: String]
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    titleView
+                    assignmentMatrixView
+                    actionButtonsView
+                }
+            }
+            .navigationTitle("Voice-Message Assignment")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                #if os(iOS)
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(Color("NeonGreen"))
+                }
+                #else
+                ToolbarItem(placement: .automatic) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(Color("NeonGreen"))
+                }
+                #endif
+            }
+        }
+    }
+    
+    private var titleView: some View {
+        VStack(spacing: 10) {
+            Text("Assign Messages to Voices")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Text("Tap any cell to assign a message to a voice")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .padding(.top, 20)
+    }
+    
+    private var assignmentMatrixView: some View {
+        VStack(spacing: 15) {
+            // Header row with voice names
+            HStack(spacing: 0) {
+                Text("Messages →")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .frame(width: 80, alignment: .leading)
+                
+                ForEach(customVoiceNames, id: \.self) { voiceName in
+                    Text(voiceName)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color("NeonGreen"))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            
+            // Matrix rows for each message
+            ForEach(0..<customAlarmMessages.count, id: \.self) { messageIndex in
+                HStack(spacing: 0) {
+                    // Message label
+                    Text("Message \(messageIndex + 1)")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .frame(width: 80, alignment: .leading)
+                    
+                    // Assignment cells for each voice
+                    ForEach(customVoiceNames, id: \.self) { voiceName in
+                        Button(action: {
+                            assignMessageToVoice(messageIndex: messageIndex, voiceName: voiceName)
+                        }) {
+                            let isAssigned = voiceMessageAssignments[voiceName] == customAlarmMessages[messageIndex]
+                            let hasMessage = !customAlarmMessages[messageIndex].isEmpty
+                            
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(isAssigned && hasMessage ? Color("NeonGreen") : Color.black)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(hasMessage ? Color("NeonGreen") : Color.gray, lineWidth: 1)
+                                )
+                                .overlay(
+                                    Group {
+                                        if isAssigned && hasMessage {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.black)
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                        } else if hasMessage {
+                                            Text("+")
+                                                .foregroundColor(Color("NeonGreen"))
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                        } else {
+                                            Text("-")
+                                                .foregroundColor(.gray)
+                                                .font(.caption)
+                                        }
+                                    }
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .frame(height: 30)
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var actionButtonsView: some View {
+        VStack(spacing: 15) {
+            // Clear all assignments
+            Button("Clear All Assignments") {
+                voiceMessageAssignments.removeAll()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            
+            // Apply same message to all voices
+            Button("Apply Message 1 to All Voices") {
+                if !customAlarmMessages[0].isEmpty {
+                    for voiceName in customVoiceNames {
+                        voiceMessageAssignments[voiceName] = customAlarmMessages[0]
+                    }
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+    }
+    
+    private func assignMessageToVoice(messageIndex: Int, voiceName: String) {
+        let message = customAlarmMessages[messageIndex]
+        if !message.isEmpty {
+            voiceMessageAssignments[voiceName] = message
+            print("🎤 Assigned '\(message)' to voice '\(voiceName)'")
+        }
+    }
+}
+
 // MARK: - Extensions
 extension Color {
     // Removed duplicate color definition - using Color("NeonGreen") from assets
@@ -676,15 +1041,20 @@ extension Color {
 // MARK: - Alarm Sheet View
 struct AlarmSheetView: View {
     @Binding var alarms: [Alarm]
+    let onRemoveNotification: (Alarm) -> Void
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedTime = Date()
-    @State private var customAlarmMessages = ["", "", "", "", ""]
+    @State private var customAlarmMessages = ["", "", "", ""]
     @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
     @State private var selectedVoiceForMessage = 0
     @State private var showingConfiguration = false
     @State private var configuredVoiceName = "Simeon" // Default voice
     @State private var configuredMessage = "" // Will be set from SetAlarmView
+    
+    // New: For editing existing alarms
+    @State private var editingAlarmIndex: Int? = nil
+    @State private var isEditingMode = false
     
     var body: some View {
         NavigationView {
@@ -713,7 +1083,7 @@ struct AlarmSheetView: View {
     }
     
     private var titleView: some View {
-        Text("Set Alarm")
+        Text(isEditingMode ? "Edit Alarm" : "Set Alarm")
             .font(.title)
             .fontWeight(.bold)
             .foregroundColor(.white)
@@ -755,11 +1125,28 @@ struct AlarmSheetView: View {
                 .foregroundColor(Color("NeonGreen"))
                 .padding(.leading, 5)
             
+            Text(isEditingMode ? "Editing existing alarm. Change the time, message, or voice as needed." : "Each alarm slot can only hold one alarm. Tapping an occupied slot will edit the existing alarm.")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.leading, 5)
+            
             ForEach(0..<3, id: \.self) { index in
                 Button(action: {
                     createAlarm(for: index)
                 }) {
-                    AlarmSelectionRow(title: "Alarm \(index + 1)")
+                    let isOccupied = alarms.contains { alarm in
+                        alarm.label.contains("Alarm \(index + 1)")
+                    }
+                    let occupiedTime = alarms.first { alarm in
+                        alarm.label.contains("Alarm \(index + 1)")
+                    }?.time.formatted(date: .omitted, time: .shortened)
+                    
+                    AlarmSelectionRow(
+                        title: "Alarm \(index + 1)",
+                        isOccupied: isOccupied,
+                        occupiedTime: occupiedTime,
+                        isEditing: isEditingMode && editingAlarmIndex == index
+                    )
                 }
                 .buttonStyle(PlainButtonStyle())
                 .frame(height: 50)
@@ -775,7 +1162,24 @@ struct AlarmSheetView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             
-            Button("Cancel") {
+            if isEditingMode {
+                Button("Update Alarm") {
+                    if let editingIndex = editingAlarmIndex {
+                        createOrUpdateAlarm(for: editingIndex)
+                    }
+                }
+                .buttonStyle(PrimaryButtonStyle())
+            }
+            
+            Button(isEditingMode ? "Cancel Edit" : "Cancel") {
+                // Reset editing mode if canceling
+                if isEditingMode {
+                    isEditingMode = false
+                    editingAlarmIndex = nil
+                    selectedTime = Date()
+                    configuredMessage = ""
+                    configuredVoiceName = "Simeon"
+                }
                 dismiss()
             }
             .buttonStyle(PrimaryButtonStyle())
@@ -785,23 +1189,69 @@ struct AlarmSheetView: View {
     }
     
     private func createAlarm(for index: Int) {
+        // Check if an alarm with this index already exists
+        let existingAlarmIndex = alarms.firstIndex { alarm in
+            alarm.label.contains("Alarm \(index + 1)")
+        }
+        
+        if let existingIndex = existingAlarmIndex {
+            // Alarm already exists - enter editing mode
+            let existingAlarm = alarms[existingIndex]
+            editingAlarmIndex = existingIndex
+            selectedTime = existingAlarm.time
+            configuredMessage = existingAlarm.label
+            configuredVoiceName = existingAlarm.voiceName
+            isEditingMode = true
+            print("🔔 Entering edit mode for existing alarm \(index + 1)")
+            return
+        }
+        
+        // Create new alarm
+        createOrUpdateAlarm(for: index)
+    }
+    
+    private func createOrUpdateAlarm(for index: Int) {
         // Use configured message and voice if available, otherwise use defaults
         let alarmMessage = configuredMessage.isEmpty ? "Alarm \(index + 1)" : configuredMessage
         let selectedVoice = configuredVoiceName
         
-        // Create alarm with voice information
-        let newAlarm = Alarm(
-            time: selectedTime, 
-            isEnabled: true, 
-            label: alarmMessage, 
-            repeatDays: [],
-            voiceName: selectedVoice
-        )
-        alarms.append(newAlarm)
-        scheduleNotification(for: newAlarm, voiceName: selectedVoice)
+        if isEditingMode, let editingIndex = editingAlarmIndex {
+            // Update existing alarm
+            let existingAlarm = alarms[editingIndex]
+            onRemoveNotification(existingAlarm)
+            
+            let updatedAlarm = Alarm(
+                time: selectedTime, 
+                isEnabled: true, 
+                label: alarmMessage, 
+                repeatDays: [],
+                voiceName: selectedVoice
+            )
+            alarms[editingIndex] = updatedAlarm
+            scheduleNotification(for: updatedAlarm, voiceName: selectedVoice)
+            
+            print("🔔 Updated alarm: \(alarmMessage) with voice: \(selectedVoice)")
+            print("🔔 Updated alarm details - Time: \(selectedTime), Message: \(alarmMessage), Voice: \(selectedVoice)")
+            
+            // Reset editing mode
+            isEditingMode = false
+            editingAlarmIndex = nil
+        } else {
+            // Create new alarm
+            let newAlarm = Alarm(
+                time: selectedTime, 
+                isEnabled: true, 
+                label: alarmMessage, 
+                repeatDays: [],
+                voiceName: selectedVoice
+            )
+            alarms.append(newAlarm)
+            scheduleNotification(for: newAlarm, voiceName: selectedVoice)
+            
+            print("🔔 Created new alarm: \(alarmMessage) with voice: \(selectedVoice)")
+            print("🔔 New alarm details - Time: \(selectedTime), Message: \(alarmMessage), Voice: \(selectedVoice)")
+        }
         
-        print("🔔 Created alarm: \(alarmMessage) with voice: \(selectedVoice)")
-        print("🔔 Alarm details - Time: \(selectedTime), Message: \(alarmMessage), Voice: \(selectedVoice)")
         dismiss()
     }
     
@@ -810,48 +1260,125 @@ struct AlarmSheetView: View {
         content.title = "I-RIZE Alarm"
         content.body = alarm.label
         content.sound = .default
+        content.categoryIdentifier = "ALARM_CATEGORY"
         
         let alarmData: [String: Any] = [
             "message": alarm.label,
-            "voiceName": voiceName
+            "voiceName": voiceName,
+            "alarmID": alarm.id.uuidString
         ]
         content.userInfo = alarmData
         
+        // Calculate next occurrence of this time
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: alarm.time)
+        let now = Date()
+        var targetDate = alarm.time
+        
+        // If the alarm time has already passed today, schedule for tomorrow
+        if targetDate <= now {
+            targetDate = calendar.date(byAdding: .day, value: 1, to: targetDate) ?? targetDate
+        }
+        
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: targetDate)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         
         let request = UNNotificationRequest(identifier: alarm.id.uuidString, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request)
         
-        print("🔔 Scheduled alarm for \(alarm.label) with voice: \(voiceName)")
-        print("🔔 Notification data: \(alarmData)")
+        UNUserNotificationCenter.current().add(request) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Failed to schedule notification: \(error.localizedDescription)")
+                } else {
+                    print("✅ Successfully scheduled alarm for \(alarm.label)")
+                    print("🔔 Scheduled for: \(targetDate)")
+                    print("🔔 Using voice: \(voiceName)")
+                    print("🔔 Notification ID: \(alarm.id.uuidString)")
+                    
+                    // Verify the notification was scheduled
+                    self.verifyNotificationScheduled(for: alarm.id.uuidString)
+                }
+            }
+        }
+    }
+    
+    private func verifyNotificationScheduled(for identifier: String) {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let matchingRequest = requests.first { $0.identifier == identifier }
+            if let request = matchingRequest {
+                print("✅ Verified notification scheduled: \(request.identifier)")
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger {
+                    print("🔔 Next fire date: \(trigger.nextTriggerDate()?.description ?? "Unknown")")
+                }
+            } else {
+                print("❌ Notification verification failed: \(identifier) not found in pending requests")
+            }
+        }
     }
 }
 
 // MARK: - Supporting Views
 struct AlarmSelectionRow: View {
     let title: String
+    let isOccupied: Bool
+    let occupiedTime: String?
+    let isEditing: Bool
     
     var body: some View {
         RoundedRectangle(cornerRadius: 12)
             .fill(Color.black)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color("NeonGreen"), lineWidth: 2)
-                    .shadow(color: Color("NeonGreen").opacity(0.6), radius: 6, x: 0, y: 0)
+                    .stroke(strokeColor, lineWidth: 2)
+                    .shadow(color: strokeColor.opacity(0.6), radius: 6, x: 0, y: 0)
             )
             .overlay(
                 HStack {
-                    Text(title)
-                        .foregroundColor(.white)
-                        .font(.system(size: 16, weight: .medium))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .medium))
+                        if isOccupied, let time = occupiedTime {
+                            Text(isEditing ? "Editing - Set for \(time)" : "Set for \(time)")
+                                .foregroundColor(isEditing ? Color("NeonGreen") : .orange)
+                                .font(.caption)
+                        }
+                    }
                     Spacer()
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(Color("NeonGreen"))
+                    Image(systemName: iconName)
+                        .foregroundColor(iconColor)
                 }
                 .padding()
             )
+    }
+    
+    private var strokeColor: Color {
+        if isEditing {
+            return Color("NeonGreen")
+        } else if isOccupied {
+            return .orange
+        } else {
+            return Color("NeonGreen")
+        }
+    }
+    
+    private var iconName: String {
+        if isEditing {
+            return "pencil.circle.fill"
+        } else if isOccupied {
+            return "clock.fill"
+        } else {
+            return "chevron.right"
+        }
+    }
+    
+    private var iconColor: Color {
+        if isEditing {
+            return Color("NeonGreen")
+        } else if isOccupied {
+            return .orange
+        } else {
+            return Color("NeonGreen")
+        }
     }
 }
 
@@ -887,6 +1414,10 @@ struct SetAlarmView: View {
     @State private var selectedMessageIndex = 0
     @State private var selectedVoiceForMessage = 0
     
+    // New: Voice-Message assignment mapping
+    @State private var voiceMessageAssignments: [String: String] = [:]
+    @State private var showingQuickAssignSheet = false
+    
     // Debug: Print voice configuration on init
     init(alarms: Binding<[Alarm]>, configuredVoiceName: Binding<String>, configuredMessage: Binding<String>) {
         self._alarms = alarms
@@ -899,7 +1430,8 @@ struct SetAlarmView: View {
     private let predefinedMessages = [
         "Wake up! It's a new day and a new chance to take control. You've got breath in your lungs, strength in your body, and fire in your spirit. No more snoozing through your potential — get up and show life exactly who you are. You're built for progress, made for impact, and today is yours to dominate. Let's move. Let's rise. Let's win.",
         "YOUR PARAGRAPH 2 HERE - Write your custom alarm message paragraph here",
-        "YOUR PARAGRAPH 3 HERE - Write your custom alarm message paragraph here"
+        "YOUR PARAGRAPH 3 HERE - Write your custom alarm message paragraph here",
+        "YOUR PARAGRAPH 4 HERE - Write your custom alarm message paragraph here"
     ]
     
     var body: some View {
@@ -911,6 +1443,7 @@ struct SetAlarmView: View {
                 ScrollView(showsIndicators: false) {
                                 VStack(spacing: 20) {
                 alarmMessagesSection
+                quickAssignmentSection
                 voiceSelectionSection
                 currentConfigurationSection
             }
@@ -926,6 +1459,13 @@ struct SetAlarmView: View {
             MessagePickerView(
                 selectedMessage: $customAlarmMessages[selectedMessageIndex],
                 predefinedMessages: predefinedMessages
+            )
+        }
+        .sheet(isPresented: $showingQuickAssignSheet) {
+            QuickAssignmentSheet(
+                customAlarmMessages: $customAlarmMessages,
+                customVoiceNames: $customVoiceNames,
+                voiceMessageAssignments: $voiceMessageAssignments
             )
         }
         .onAppear {
@@ -979,32 +1519,96 @@ struct SetAlarmView: View {
         }
     }
     
-    private var voiceSelectionSection: some View {
+    private var quickAssignmentSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Select Voice for Each Message")
+            Text("Quick Voice-Message Assignment")
                 .font(.headline)
                 .foregroundColor(Color("NeonGreen"))
                 .padding(.leading, 5)
             
-            // Debug info
-            Text("Available voices: \(customVoiceNames.joined(separator: ", "))")
-                .foregroundColor(.gray)
+            Text("Quickly assign messages to voices or mix and match")
                 .font(.caption)
+                .foregroundColor(.gray)
                 .padding(.leading, 5)
             
             VStack(spacing: 8) {
-                ForEach(0..<customVoiceNames.count, id: \.self) { index in
-                    Button(action: {
-                        selectVoiceForMessage(index: index)
-                    }) {
-                        VoiceSelectionRow(
-                            voiceName: customVoiceNames[index],
-                            message: index < customAlarmMessages.count ? customAlarmMessages[index] : "",
-                            isSelected: selectedVoiceForMessage == index
-                        )
+                // Individual voice-message assignment
+                Button(action: {
+                    showingQuickAssignSheet = true
+                }) {
+                    HStack {
+                        Image(systemName: "person.2.fill")
+                            .foregroundColor(Color("NeonGreen"))
+                        Text("Custom Voice-Message Assignments")
+                            .foregroundColor(.white)
+                            .font(.system(size: 14, weight: .medium))
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                            .foregroundColor(Color("NeonGreen"))
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .frame(height: 60)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.black)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color("NeonGreen"), lineWidth: 1)
+                            )
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
+    
+    private var voiceSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Current Voice-Message Assignments")
+                .font(.headline)
+                .foregroundColor(Color("NeonGreen"))
+                .padding(.leading, 5)
+            
+            Text("Shows current assignments from the quick assignment matrix")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.leading, 5)
+            
+            VStack(spacing: 8) {
+                ForEach(customVoiceNames, id: \.self) { voiceName in
+                    let assignedMessage = voiceMessageAssignments[voiceName] ?? "No message assigned"
+                    let hasAssignment = voiceMessageAssignments[voiceName] != nil
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(voiceName)
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .medium))
+                            Text(assignedMessage)
+                                .foregroundColor(hasAssignment ? Color("NeonGreen") : .gray)
+                                .font(.caption)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                        }
+                        Spacer()
+                        if hasAssignment {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(Color("NeonGreen"))
+                                .font(.title2)
+                        } else {
+                            Image(systemName: "circle")
+                                .foregroundColor(.gray)
+                                .font(.title2)
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.black)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(hasAssignment ? Color("NeonGreen") : Color.gray, lineWidth: 1)
+                            )
+                    )
                 }
             }
         }
@@ -1119,6 +1723,8 @@ struct SetAlarmView: View {
             print("⚠️ Please select a message before setting the voice and message")
         }
     }
+    
+
 }
 
 // MARK: - Supporting Row Views
