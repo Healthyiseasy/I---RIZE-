@@ -333,12 +333,7 @@ struct ElevenLabsConfig {
         "Simeon": simeonVoiceID,
         "Rachel": rachelVoiceID,
         "Domi": domiVoiceID,
-        "Mr. Rubio": mrRubioVoiceID,
-        "voice1": "",
-        "voice2": "",
-        "voice3": "",
-        "voice4": "",
-        "voice5": ""
+        "Mr. Rubio": mrRubioVoiceID
     ]
     
     // Get available character voice names
@@ -774,6 +769,7 @@ struct QuickAssignmentSheet: View {
     let predefinedMessages: [String]
     @Binding var customVoiceNames: [String]
     @Binding var voiceMessageAssignments: [String: String]
+    let onSaveAndReturn: () -> Void
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -901,25 +897,10 @@ struct QuickAssignmentSheet: View {
     
     private var actionButtonsView: some View {
         VStack(spacing: 15) {
-            // Clear all assignments
-            Button("Clear All Assignments") {
-                voiceMessageAssignments.removeAll()
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            
-            // Apply same message to all voices
-            Button("Apply Message 1 to All Voices") {
-                if !customAlarmMessages[0].isEmpty {
-                    for voiceName in customVoiceNames {
-                        voiceMessageAssignments[voiceName] = customAlarmMessages[0]
-                    }
-                }
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            
-            // Set button to lock in assignments
+            // Set button to lock in assignments and return to alarm selection
             Button("Set") {
                 print("🎤 Locking in voice-message assignments: \(voiceMessageAssignments)")
+                onSaveAndReturn()
                 dismiss()
             }
             .buttonStyle(PrimaryButtonStyle())
@@ -1091,6 +1072,16 @@ struct AlarmSheetView: View {
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle())
+            } else if selectedAlarmIndex != nil && !configuredMessage.isEmpty {
+                // Show Create Alarm button when configuration is complete
+                Button("Create Alarm \(selectedAlarmIndex! + 1)") {
+                    if let alarmIndex = selectedAlarmIndex {
+                        createOrUpdateAlarm(for: alarmIndex)
+                    }
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .background(Color("NeonGreen"))
+                .foregroundColor(.black)
             }
             
             Button(isEditingMode ? "Cancel Edit" : "Back") {
@@ -1401,7 +1392,12 @@ struct SetAlarmView: View {
                 customAlarmMessages: $customAlarmMessages,
                 predefinedMessages: predefinedMessages,
                 customVoiceNames: $customVoiceNames,
-                voiceMessageAssignments: $voiceMessageAssignments
+                voiceMessageAssignments: $voiceMessageAssignments,
+                onSaveAndReturn: {
+                    // Save all settings and return to alarm selection
+                    print("🎤 Saving all voice-message assignments and returning to alarm selection")
+                    showingQuickAssignSheet = false
+                }
             )
         }
         .onAppear {
@@ -1596,43 +1592,54 @@ struct SetAlarmView: View {
     }
     
     private func setVoiceAndMessage() {
+        // Check if user has selected any messages
         let hasSelectedMessage = customAlarmMessages.contains { !$0.isEmpty }
         
-        if hasSelectedMessage {
-            // Check if there are any voice assignments
-            if !voiceMessageAssignments.isEmpty {
-                // Use the first assigned voice and message
-                for (assignmentKey, message) in voiceMessageAssignments {
-                    if !message.isEmpty {
-                        // Extract voice name from assignment key (format: "VoiceName_MessageIndex")
-                        let components = assignmentKey.split(separator: "_")
-                        if components.count == 2, let voiceName = components.first {
-                            configuredVoiceName = String(voiceName)
-                            configuredMessage = message
-                            print("🎤 Using assigned voice and message:")
-                            print("📝 Message: \(message)")
-                            print("🎵 Voice: \(configuredVoiceName)")
-                            break
-                        }
+        if !hasSelectedMessage {
+            print("⚠️ Please select at least one message before setting the voice and message")
+            return
+        }
+        
+        // Check if there are any voice assignments from QuickAssignmentSheet
+        if !voiceMessageAssignments.isEmpty {
+            // Use the first assigned voice and message
+            for (assignmentKey, message) in voiceMessageAssignments {
+                if !message.isEmpty {
+                    // Extract voice name from assignment key (format: "VoiceName_MessageIndex")
+                    let components = assignmentKey.split(separator: "_")
+                    if components.count == 2, let voiceName = components.first {
+                        configuredVoiceName = String(voiceName)
+                        configuredMessage = message
+                        print("🎤 Using assigned voice and message:")
+                        print("📝 Message: \(message)")
+                        print("🎵 Voice: \(configuredVoiceName)")
+                        break
                     }
                 }
-            } else {
-                // No automatic fallback - user must make explicit selections
-                print("🎤 No voice assignments found - user must select voice and message")
-                return
             }
-            
-            print("✅ Configuration saved to main alarm view")
-            
-            // If we have a selected alarm index, create the alarm now
-            if let alarmIndex = selectedAlarmIndex {
-                createAlarmForIndex(alarmIndex)
-            }
-            
-            dismiss()
         } else {
-            print("⚠️ Please select a message before setting the voice and message")
+            // No assignments - use the currently selected voice and first non-empty message
+            if configuredVoiceName.isEmpty {
+                configuredVoiceName = customVoiceNames[0] // Default to first voice
+            }
+            
+            // Find first non-empty message
+            if let firstMessage = customAlarmMessages.first(where: { !$0.isEmpty }) {
+                configuredMessage = firstMessage
+            }
+            
+            print("🎤 Using selected voice and message:")
+            print("📝 Message: \(configuredMessage)")
+            print("🎵 Voice: \(configuredVoiceName)")
         }
+        
+        print("✅ Configuration locked in for alarm slot \(selectedAlarmIndex.map { $0 + 1 } ?? 0)")
+        print("📝 Locked Message: \(configuredMessage)")
+        print("🎵 Locked Voice: \(configuredVoiceName)")
+        
+        // Don't create the alarm yet - just save the configuration and return
+        // The user will create the alarm when they go back to the main interface
+        dismiss()
     }
     
     private func createAlarmForIndex(_ index: Int) {

@@ -10,15 +10,15 @@
 				<key>location-parameters</key>
 				<dict>
 					<key>EndingColumnNumber</key>
-					<string>0</string>
+					<string>14</string>
 					<key>EndingLineNumber</key>
-					<string>1</string>
-					<key>StartingColumnNumber</key>
 					<string>0</string>
+					<key>StartingColumnNumber</key>
+					<string>14</string>
 					<key>StartingLineNumber</key>
-					<string>1</string>
+					<string>0</string>
 					<key>Timestamp</key>
-					<string>777049757.460502</string>
+					<string>777480314.251083</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -36,12 +36,11 @@
 				<key>focused</key>
 				<string></string>
 				<key>leading</key>
-				<string>import SwiftUI
-</string>
+				<string>import SwiftUI</string>
 				<key>trailing</key>
-				<string>import UserNotifications
+				<string>
+import UserNotifications
 import AVFoundation
-
 </string>
 			</dict>
 			<key>type</key>
