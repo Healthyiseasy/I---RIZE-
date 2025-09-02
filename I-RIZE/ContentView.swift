@@ -309,13 +309,13 @@ struct AlarmRowView: View {
 // This configuration provides different voice keys and settings for each  character:
 // - Simeon: Friendly and approachable voice
 // - Rachel: Warm and caring voice  
-// - Domi: Energetic and dynamic voice
+
 // - Mr. Rubio: Professional and authoritative voice
 //
 // To use different voices, simply pass the character name to the generateSpeech method:
 // elevenLabsService.generateSpeech(text: "Hello!", voiceName: "Simeon")
 // elevenLabsService.generateSpeech(text: "Welcome!", voiceName: "Rachel")
-// elevenLabsService.generateSpeech(text: "Let's go!", voiceName: "Domi")
+
 // elevenLabsService.generateSpeech(text: "Important message", voiceName: "Mr. Rubio")
 struct ElevenLabsConfig {
     // MARK: - API Configuration
@@ -330,20 +330,19 @@ struct ElevenLabsConfig {
     // Get them from: https://elevenlabs.io/ → Voice Library → Copy Voice ID
     static let simeonVoiceID = "alMSnmMfBQWEfTP8MRcX"  // Replace with actual Simeon voice ID
     static let rachelVoiceID = "21m00Tcm4TlvDq8ikWAM"// Replace with actual Rachel voice ID
-    static let domiVoiceID = "AZnzlk1XvdvUeBnXmlld"      // Replace with actual Domi voice ID
+
     static let mrRubioVoiceID = "ZVpL7Q81HSRxP5LF40O5" // Replace with Mr. Rubio voice ID
     
     // Voice IDs for different character voices
     static let voiceIDs = [
         "Simeon": simeonVoiceID,
         "Rachel": rachelVoiceID,
-        "Domi": domiVoiceID,
         "Mr. Rubio": mrRubioVoiceID
     ]
     
     // Get available character voice names
     static func getAvailableCharacterVoiceNames() -> [String] {
-        return ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+        return ["Simeon", "Rachel", "Mr. Rubio"]
     }
     
     // Validate configuration
@@ -362,9 +361,7 @@ struct ElevenLabsConfig {
         if rachelVoiceID == "YOUR_RACHEL_VOICE_ID" || rachelVoiceID.isEmpty {
             errors.append("❌ Rachel Voice ID not configured")
         }
-        if domiVoiceID == "YOUR_DOMI_VOICE_ID" || domiVoiceID.isEmpty {
-            errors.append("❌ Domi Voice ID not configured")
-        }
+
         if mrRubioVoiceID == "YOUR_MR_RUBIO_VOICE_ID" || mrRubioVoiceID.isEmpty {
             errors.append("❌ Mr. Rubio Voice ID not configured")
         }
@@ -403,13 +400,7 @@ struct ElevenLabsConfig {
         "use_speaker_boost": true
     ]
     
-    // Custom voice settings for Domi (energetic and dynamic)
-    static let domiVoiceSettings: [String: Any] = [
-        "stability": 0.55,       // Lower stability for more dynamic expression
-        "similarity_boost": 0.7, // Good similarity
-        "style": 0.5,            // Higher style for energy
-        "use_speaker_boost": true
-    ]
+
 }
 
 // MARK: - ElevenLabs Service
@@ -514,7 +505,7 @@ final class ElevenLabsService {
     
     // Get available character voice names specifically
     func getAvailableCharacterVoiceNames() -> [String] {
-        return ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+        return ["Simeon", "Rachel", "Mr. Rubio"]
     }
     
     // Get voice settings for a specific character
@@ -526,8 +517,7 @@ final class ElevenLabsService {
             return ElevenLabsConfig.simeonVoiceSettings
         case "Rachel":
             return ElevenLabsConfig.rachelVoiceSettings
-        case "Domi":
-            return ElevenLabsConfig.domiVoiceSettings
+
         default:
             return ElevenLabsConfig.voiceSettings
         }
@@ -1154,7 +1144,7 @@ struct AlarmSheetView: View {
     
     @State private var selectedTime = Date()
     @State private var customAlarmMessages = ["", "", "", ""]
-    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+    @State private var customVoiceNames = ["Simeon", "Rachel", "Mr. Rubio"]
     @State private var selectedVoiceForMessage = 0
     @State private var showingConfiguration = false
     @State private var configuredVoiceName = "Simeon" // Default voice
@@ -1538,7 +1528,7 @@ struct SetAlarmView: View {
     
     // User's selected messages for each slot
     @State private var customAlarmMessages = ["", "", "", ""]
-    @State private var customVoiceNames = ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+    @State private var customVoiceNames = ["Simeon", "Rachel", "Mr. Rubio"]
     @State private var showingMessagePicker = false
     @State private var selectedMessageIndex = 0
     @State private var selectedVoiceForMessage = 0
@@ -1557,8 +1547,8 @@ struct SetAlarmView: View {
         self._configuredMessage = configuredMessage
         self.selectedAlarmIndex = selectedAlarmIndex
         self.selectedTime = selectedTime
-        print("🎤 SetAlarmView initialized with voices: \(["Simeon", "Rachel", "Domi", "Mr. Rubio"])")
-        print("🎤 Voice count: \(["Simeon", "Rachel", "Domi", "Mr. Rubio"].count)")
+        print("🎤 SetAlarmView initialized with voices: \(["Simeon", "Rachel", "Mr. Rubio"])")
+        print("🎤 Voice count: \(["Simeon", "Rachel", "Mr. Rubio"].count)")
         print("🎤 Selected alarm index: \(selectedAlarmIndex ?? -1)")
     }
     
@@ -2085,7 +2075,7 @@ struct SimplifiedAlarmView: View {
         "Rise up, warrior! The challenges ahead are opportunities in disguise. Your strength, your resilience, and your unwavering spirit will carry you through anything. Trust in your abilities, stay focused on your goals, and remember that every great achievement begins with the decision to try."
     ]
     
-    private let availableVoices = ["Simeon", "Rachel", "Domi", "Mr. Rubio"]
+    private let availableVoices = ["Simeon", "Rachel", "Mr. Rubio"]
     
     var body: some View {
         NavigationView {
@@ -2261,7 +2251,7 @@ struct SimplifiedAlarmView: View {
         switch voice {
         case "Simeon": return "Friendly and approachable"
         case "Rachel": return "Warm and caring"
-        case "Domi": return "Energetic and dynamic"
+
         case "Mr. Rubio": return "Professional and authoritative"
         default: return "Custom voice"
         }
@@ -2399,7 +2389,7 @@ struct VoicePickerRow: View {
         switch voice {
         case "Simeon": return "Friendly and approachable"
         case "Rachel": return "Warm and caring"
-        case "Domi": return "Energetic and dynamic"
+
         case "Mr. Rubio": return "Professional and authoritative"
         default: return "Custom voice"
         }
